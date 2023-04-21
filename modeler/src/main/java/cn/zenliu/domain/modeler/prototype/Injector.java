@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.prototype;
 
 import cn.zenliu.domain.modeler.error.DomainError;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
@@ -30,6 +31,7 @@ import java.util.function.Supplier;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public interface Injector {
     /**
      * register a Bean Provider, each time request this bean will generate new one from factory.

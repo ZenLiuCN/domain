@@ -15,12 +15,15 @@
 
 package cn.zenliu.domain.modeler.prototype;
 
+import org.jetbrains.annotations.ApiStatus;
+
 /**
  * Accessor is a base type for extending type abilities.
  *
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.Experimental
 public interface Accessor<T> {
-    T getTargetObject();
+    T target();
 }

@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.prototype;
 
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Modifier;
@@ -29,53 +30,54 @@ import java.util.Optional;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public interface Meta {
     /**
      * when extended by interface: current interface is Domain Object
      */
-    interface Object {
+    @ApiStatus.AvailableSince("0.1.0")  interface Object {
 
     }
 
     /**
      * when extended by interface: current interface is a Generated Domain Entity, which must have a inherited Domain Object
      */
-    interface Entity {
+    @ApiStatus.AvailableSince("0.1.0") interface Entity {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Value
      */
-    interface Value {
+    @ApiStatus.AvailableSince("0.1.0") interface Value {
 
     }
 
     /**
      * when extended by interface: current interface is Domain UseCase
      */
-    interface UseCase {
+    @ApiStatus.AvailableSince("0.1.0") interface UseCase {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Port
      */
-    interface Port {
+    @ApiStatus.AvailableSince("0.1.0") interface Port {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Event
      */
-    interface Event {
+    @ApiStatus.AvailableSince("0.1.0") interface Event {
 
     }
 
     /**
-     * a Object fields Meta Data
+     * An interface Meta Information as constant
      */
-    interface Fields {
+    @ApiStatus.AvailableSince("0.1.0") interface Fields {
         /**
          * static final field name suffix for hold the type class.
          */
@@ -109,7 +111,7 @@ public interface Meta {
     /**
      * when use with interface: current interface is Domain Port Adapter Provider
      */
-    interface Provider {
+    @ApiStatus.AvailableSince("0.1.0") interface Provider {
         /**
          * @return the Initializer info or empty
          */
