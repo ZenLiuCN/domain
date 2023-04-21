@@ -1,0 +1,9 @@
+.vscode/
+.history/
+*.vsix
+.idea/
+cmake-build-*/
+*.iws
+*.iml
+out/
+target/
