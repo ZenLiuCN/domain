@@ -109,7 +109,7 @@ public class ModelerProcessor implements Processor, ProcUtil {
         } else {
             var moduleName = pattern.substring(0, slash);
             if (!SourceVersion.isName(moduleName)) {
-                System.err.println("[meta processor] invalid annotation type pattern:" + pattern);
+                System.err.println("[modeler processor] invalid annotation type pattern:" + pattern);
                 return noMatches;
             }
             module = Pattern.quote(moduleName + "/");
@@ -118,18 +118,18 @@ public class ModelerProcessor implements Processor, ProcUtil {
         if (isValidImportString(pkg)) {
             return Pattern.compile(module + validImportStringToPatternString(pkg));
         } else {
-            System.err.println("[meta processor] invalid annotation type pattern:" + pattern);
+            System.err.println("[modeler processor] invalid annotation type pattern:" + pattern);
             return noMatches;
         }
     }
 
     //endregion
     static void printf(String pattern, Object... args) {
-        System.out.println("[meta processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
+        System.out.println("[modeler processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
     }
 
     static void errorf(String pattern, Object... args) {
-        System.err.println("[meta processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
+        System.err.println("[modeler processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
     }
 
 
