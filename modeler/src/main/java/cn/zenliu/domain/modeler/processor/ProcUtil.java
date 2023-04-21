@@ -450,10 +450,16 @@ public interface ProcUtil {
     default String toClassName(TypeMirror type) {
         if (type.getKind() == TypeKind.TYPEVAR) {
             return TypeName.get(Object.class).toString();
-        } else if (!typeElement(type).getTypeParameters().isEmpty()) {
-            return typeElement(type).getQualifiedName().toString();
         } else {
-            return TypeName.get(type).toString();
+            var t = typeElement(type);
+            if (t == null) {
+                return TypeName.get(Object.class).toString();
+            }
+            if (!t.getTypeParameters().isEmpty()) {
+                return t.getQualifiedName().toString();
+            } else {
+                return TypeName.get(type).toString();
+            }
         }
     }
     //endregion
