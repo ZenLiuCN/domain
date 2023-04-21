@@ -23,19 +23,19 @@ class ProcessorTest {
     static void entityGenericProcess() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
                  proc.fields.enabled=false
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
                 .compile(JavaFileObjects.forSourceString("MetaTest", """
                         package some.pack;
-                        import cn.zenliu.domains.meta.annotation.Gene.Entity;
-                        import cn.zenliu.domains.meta.annotation.Gene.Fields;
-                        import cn.zenliu.domains.meta.annotation.Generated;
-                        import cn.zenliu.domains.meta.prototype.Meta;
+                        import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                        import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                        import cn.zenliu.domain.modeler.annotation.Generated;
+                        import cn.zenliu.domain.modeler.prototype.Meta;
                         @Entity @Fields
                         public interface MetaTest<T> extends Meta.Object {
                               T getId();
@@ -64,18 +64,18 @@ class ProcessorTest {
     static void fieldsGenericProcess() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
                  proc.entity.enabled=false
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
                 .compile(JavaFileObjects.forSourceString("MetaTest", """
                          package some.pack;
-                         import cn.zenliu.domains.meta.annotation.Gene.Fields;
-                         import cn.zenliu.domains.meta.annotation.Gene.Entity;
-                         import cn.zenliu.domains.meta.prototype.Meta;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
                          @Entity @Fields
                           public interface MetaTest<T> extends Meta.Object {
                                                          T getId();
@@ -95,10 +95,10 @@ class ProcessorTest {
     static void entityProcessFile() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
                  proc.fields.enabled=false
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
@@ -117,17 +117,17 @@ class ProcessorTest {
     static void entityProcess() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
                  proc.fields.enabled=false
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
                 .compile(JavaFileObjects.forSourceString("MetaTest", """
                         package some.pack;
-                        import cn.zenliu.domains.meta.annotation.Gene.Entity;
-                        import cn.zenliu.domains.meta.prototype.Meta;
+                        import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                        import cn.zenliu.domain.modeler.prototype.Meta;
                         @Entity
                         public interface MetaTest extends Meta.Object {
                                 String getId();
@@ -147,18 +147,18 @@ class ProcessorTest {
     static void fieldsProcess() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
                  proc.entity.enabled=false
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
                 .compile(JavaFileObjects.forSourceString("MetaTest", """
                          package some.pack;
-                         import cn.zenliu.domains.meta.annotation.Gene.Fields;
-                         import cn.zenliu.domains.meta.annotation.Gene.Entity;
-                         import cn.zenliu.domains.meta.prototype.Meta;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
                          @Entity @Fields
                           public interface MetaTest extends Meta.Object {
                                                          String getId();
@@ -178,17 +178,17 @@ class ProcessorTest {
     static void fieldsAndEntityProcess() {
         Files.writeString(Paths.get(Configurer.FILE_NAME), """
                  debug=true
-                 proc.entity.processor=cn.zenliu.domains.meta.processor.EntityProcessor
+                 proc.entity.processor=cn.zenliu.domain.modeler.processor.EntityProcessor
                  proc.entity.chain=true
-                 proc.fields.processor=cn.zenliu.domains.meta.processor.FieldsProcessor
+                 proc.fields.processor=cn.zenliu.domain.modeler.processor.FieldsProcessor
                 """, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         var compilation = javac()
                 .withProcessors(new ModelerProcessor())
                 .compile(JavaFileObjects.forSourceString("MetaTest", """
                          package some.pack;
-                         import cn.zenliu.domains.meta.annotation.Gene.Fields;
-                         import cn.zenliu.domains.meta.annotation.Gene.Entity;
-                         import cn.zenliu.domains.meta.prototype.Meta;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
                          @Entity @Fields
                           public interface MetaTest extends Meta.Object {
                                                          String getId();

@@ -508,8 +508,8 @@ public interface ProcUtil {
     }
 
     /**
-     * @param root the root Type
-     * @param name method name to check
+     * @param root  the root Type
+     * @param name  method name to check
      * @param param param type names to check (order important)
      */
     default boolean declaredMethod(TypeMirror root, String name, List<TypeName> param) {
