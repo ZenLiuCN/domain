@@ -96,6 +96,7 @@ public class EntityProcessor extends BaseFileProcessor {
             return null;
         }
         if (ele instanceof TypeElement t) {
+
             var isEntity = u.isDirectlyInherit(t, Meta.Entity.class);
             var isInheritedEntity = u.isAssignable(t.asType(), Meta.Entity.class);
             var isObject = u.isAssignable(t.asType(), Meta.Object.class);
