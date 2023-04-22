@@ -30,6 +30,7 @@ import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
 import java.io.File;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -42,6 +43,11 @@ public class ModelerProcessor implements Processor, ProcUtil {
     private final Map<Pattern, Set<AbstractProcessor>> processors;
     private final Set<String> supportedTypes;
 
+    public Map<String, AbstractProcessor> processors() {
+        return enabledProcessors;
+    }
+
+    private final Map<String, AbstractProcessor> enabledProcessors;
     //region Pattern Compile
     public static final Pattern noMatches = Pattern.compile("(\\P{all})+");
     private static final String allMatchesString = ".*";
@@ -125,39 +131,43 @@ public class ModelerProcessor implements Processor, ProcUtil {
 
     //endregion
     static void printf(String pattern, Object... args) {
-        System.out.println("[modeler processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
+        System.out.println("[ModelerProcessor] " + MessageFormatter.arrayFormat(pattern, args).getMessage());
     }
 
     static void errorf(String pattern, Object... args) {
-        System.err.println("[modeler processor]" + MessageFormatter.arrayFormat(pattern, args).getMessage());
+        System.err.println("[ModelerProcessor] " + MessageFormatter.arrayFormat(pattern, args).getMessage());
     }
 
 
     public ModelerProcessor() {
         if (!Loader.classExists("com.squareup.javapoet.TypeSpec", this.getClass().getClassLoader())) {
-            errorf("missing dependency com.squareup:javapoet:1.13.0 , meta processors will disabled");
+            errorf("missing dependency com.squareup:javapoet:1.13.0 ,ModelerProcessor will disabled");
             this.supportedTypes = Collections.emptySet();
             this.processors = Collections.emptyMap();
-        }else if(Configurer.root==null){
-            printf("user.dir: {}",Configurer.userDir);
+            this.enabledProcessors = Collections.emptyMap();
+        } else if (Configurer.root == null) {
+            printf("user.dir: {}", Configurer.userDir);
             Configurer.outer(Configurer.userDir, Configurer.userDir.toAbsolutePath().toString().split(Pattern.quote(File.separator)).length - 1, true);
-            errorf("missing or invalid configure file '{}' , meta processors will disabled", Configurer.FILE_NAME);
+            errorf("missing or invalid configure file '{}' , ModelerProcessor will disabled", Configurer.FILE_NAME);
             this.supportedTypes = Collections.emptySet();
             this.processors = Collections.emptyMap();
-        }else{
-            var conf=Configurer.parse();
+            this.enabledProcessors = Collections.emptyMap();
+        } else {
+            var conf = Configurer.parse();
             this.debug = conf.v0().debug;
             var processors = conf.v1();
             if (!conf.v0().isEnabled()) {
                 this.processors = Collections.emptyMap();
                 this.supportedTypes = Collections.emptySet();
-                errorf("meta processors disabled");
+                this.enabledProcessors = Collections.emptyMap();
+                errorf("ModelerProcessor disabled");
                 return;
             }
             if (processors.isEmpty()) {
                 this.processors = Collections.emptyMap();
                 this.supportedTypes = Collections.emptySet();
-                errorf("empty config found, meta processors will disabled");
+                this.enabledProcessors = Collections.emptyMap();
+                errorf("empty config found, ModelerProcessor will disabled");
                 return;
             }
             this.supportedTypes = processors.keySet();
@@ -168,7 +178,13 @@ public class ModelerProcessor implements Processor, ProcUtil {
                 return s0;
             }));
             if (debug)
-                printf("enabled processors: {}", this.processors);
+                printf("enabled patterns: {}", this.processors);
+            this.enabledProcessors = processors.values().stream()
+                    .flatMap(Collection::stream)
+                    .distinct()
+                    .collect(Collectors.toMap(AbstractProcessor::name, Function.identity()));
+            if (debug)
+                printf("enabled processors: {}", this.enabledProcessors);
         }
 
     }

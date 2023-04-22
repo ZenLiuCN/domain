@@ -15,6 +15,8 @@
 
 package cn.zenliu.domain.modeler.annotation;
 
+import cn.zenliu.domain.modeler.prototype.Meta;
+
 import java.lang.annotation.*;
 
 /**
@@ -26,18 +28,18 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Gene {
     /**
-     * Generate a full XXXEntity interface (with Setters) from a Domain Object interface.<br/>
+     * Generate a full XXXEntity interface (with Setters) from {@link Meta.Object}.<br/>
+     * if already have a  {@link Mutate}, will just directly inherit generated {@link Meta.Trait}.<br/>
      * <b>Note:</b> also effected as {@link Fields}
      */
     @Target({ElementType.TYPE})
     @Documented
-    @Inherited
     @Fields
     @interface Entity {
     }
 
     /**
-     * Generate a Constant XXXFields interface from a Domain Object interface.<br/>
+     * Generate a Constant XXXFields interface from a {@link Meta.Object}.<br/>
      * <pre>
      * {@code @Generated(...)
      * public interface UserFields extends User, Meta.Fields{
@@ -49,7 +51,16 @@ public @interface Gene {
      */
     @Target({ElementType.TYPE})
     @Documented
-    @Inherited
     @interface Fields {
+    }
+
+    /**
+     * Generate a Mutate Trait (Object) for Annotated Type of {@link Meta.Object} or {@link Meta.Trait}.
+     * The result will inherit {@link Meta.Trait}.
+     */
+    @Target({ElementType.TYPE})
+    @Documented
+    @interface Mutate {
+
     }
 }

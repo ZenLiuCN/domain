@@ -15,6 +15,10 @@
 
 package cn.zenliu.domain.modeler.prototype;
 
+import cn.zenliu.domain.modeler.annotation.Gene;
+import cn.zenliu.domain.modeler.annotation.Mode;
+import cn.zenliu.domain.modeler.processor.GeneEntity;
+import cn.zenliu.domain.modeler.processor.GeneFields;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -34,50 +38,69 @@ import java.util.Optional;
 public interface Meta {
     /**
      * when extended by interface: current interface is Domain Object
+     *
+     * @see Gene.Entity
+     * @see Gene.Fields
+     * @see Gene.Mutate
+     * @see Mode.ReadOnly
      */
-    @ApiStatus.AvailableSince("0.1.0")  interface Object {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Object {
 
     }
 
     /**
-     * when extended by interface: current interface is a Generated Domain Entity, which must have a inherited Domain Object
+     * when extended by interface: current interface is a Generated Domain Entity, which must have a inherited Domain Object.
+     *
+     * @see GeneEntity
+     * @see Gene.Entity
+     * @see Mode.ReadOnly
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Entity {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Entity {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Value
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Value {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Value {
 
     }
 
     /**
      * when extended by interface: current interface is Domain UseCase
      */
-    @ApiStatus.AvailableSince("0.1.0") interface UseCase {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface UseCase {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Port
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Port {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Port {
 
     }
 
     /**
      * when extended by interface: current interface is Domain Event
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Event {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Event {
 
     }
 
     /**
      * An interface Meta Information as constant
+     *
+     * @see GeneFields
+     * @see Gene.Fields
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Fields {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Fields {
         /**
          * static final field name suffix for hold the type class.
          */
@@ -111,13 +134,23 @@ public interface Meta {
     /**
      * when use with interface: current interface is Domain Port Adapter Provider
      */
-    @ApiStatus.AvailableSince("0.1.0") interface Provider {
+    @ApiStatus.AvailableSince("0.1.0")
+    interface Provider {
         /**
          * @return the Initializer info or empty
          */
         default Optional<Initializer> initializer() {
             return Optional.empty();
         }
+    }
+
+    /**
+     * An interface with predefined properties and actions.
+     *
+     * @see Gene.Mutate
+     */
+    interface Trait {
+
     }
 
 }

@@ -13,55 +13,22 @@
  *  As a special exception, the copyright holders of this library give you permission to link this library with independent modules to produce an executable, regardless of the license terms of these independent modules, and to copy and distribute the resulting executable under terms of your choice, provided that you also meet, for each linked independent module, the terms and conditions of the license of that module. An independent module is a module which is not derived from or based on this library. If you modify this library, you may extend this exception to your version of the library, but you are not obligated to do so. If you do not wish to do so, delete this exception statement from your version.
  */
 
-package cn.zenliu.domain.modeler.annotation;
+package cn.zenliu.domain.modeler.processor;
 
-import org.immutables.value.Value;
 
-import java.lang.annotation.*;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Just a container of generation modifier annotations
+ * add description for {@link AbstractProcessor#desc()}
  *
  * @author Zen.Liu
- * @since 2023-04-20
+ * @since 2023-04-22
  */
-@Retention(RetentionPolicy.SOURCE)
-public @interface Mode {
-
-    /**
-     * marker a field with no Setter generated for a XXXEntity type.
-     * effect with {@link Gene.Entity}
-     */
-    @Target({ElementType.FIELD, ElementType.METHOD})
-    @Documented
-    @Inherited
-    @interface ReadOnly {
-
-    }
-
-    /**
-     * mark on a none java bean style getter method as a Field.<br/>
-     * when mark on a Domain Object to define all getter like methods (returns not void,accept nothing) are Field.<br/>
-     * effect with {@link Gene.Entity} and {@link  Gene.Fields}
-     */
-    @Target({ElementType.METHOD, ElementType.TYPE})
-    @Documented
-    @Inherited
-    @interface Field {
-
-    }
-    /**
-     * suffix style of Immutables: generate immutable as *Val and Mutable as *Var
-     *
-     */
-    @Target({ElementType.TYPE})
-    @Documented
-    @Value.Style(
-            typeImmutable = "*Val",
-            typeModifiable = "*Var",
-            defaults = @Value.Immutable(lazyhash = true)
-    )
-    @interface Values {
-    }
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Desc {
+    String value();
 }

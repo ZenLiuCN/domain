@@ -20,10 +20,11 @@ import com.squareup.javapoet.TypeName;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.Trees;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.helpers.MessageFormatter;
 
-import javax.annotation.Nullable;
 import javax.annotation.processing.Filer;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
@@ -42,6 +43,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 2023-04-20
  */
 public interface ProcUtil {
+    /**
+     * current enabled processors.
+     */
+    Map<String, AbstractProcessor> processors();
+
     ProcessingEnvironment env();
 
     Elements elements();
@@ -89,6 +95,10 @@ public interface ProcUtil {
         other(formatter(pattern, args));
     }
 
+    default void other(AbstractProcessor proc, String pattern, Object... args) {
+        other(formatter("[" + proc.name() + "] " + pattern, args));
+    }
+
     default void note(String msg) {
         log(Diagnostic.Kind.NOTE, msg);
     }
@@ -99,6 +109,10 @@ public interface ProcUtil {
 
     default void note(String pattern, Object... args) {
         note(formatter(pattern, args));
+    }
+
+    default void note(AbstractProcessor proc, String pattern, Object... args) {
+        note(formatter("[" + proc.name() + "] " + pattern, args));
     }
 
     default void warn(String msg) {
@@ -113,6 +127,10 @@ public interface ProcUtil {
         warn(formatter(pattern, args));
     }
 
+    default void warn(AbstractProcessor proc, String pattern, Object... args) {
+        warn(formatter("[" + proc.name() + "] " + pattern, args));
+    }
+
     default void mandatoryWarn(String msg) {
         log(Diagnostic.Kind.MANDATORY_WARNING, msg);
     }
@@ -125,6 +143,10 @@ public interface ProcUtil {
         mandatoryWarn(formatter(pattern, args));
     }
 
+    default void mandatoryWarn(AbstractProcessor proc, String pattern, Object... args) {
+        mandatoryWarn(formatter("[" + proc.name() + "] " + pattern, args));
+    }
+
     default void error(String msg) {
         log(Diagnostic.Kind.ERROR, msg);
     }
@@ -135,6 +157,10 @@ public interface ProcUtil {
 
     default void error(String pattern, Object... args) {
         error(formatter(pattern, args));
+    }
+
+    default void error(AbstractProcessor proc, String pattern, Object... args) {
+        error(formatter("[" + proc.name() + "] " + pattern, args));
     }
 
     /**
@@ -158,10 +184,44 @@ public interface ProcUtil {
 
     }
 
+    default String fatal(AbstractProcessor proc, String pattern, Object... args) {
+        return fatal(formatter("[" + proc.name() + "] " + pattern, args));
+
+    }
+
     default MessageInfo formatter(String pattern, Object... args) {
         return MessageInfo.format(pattern, args);
     }
 
+
+    /**
+     * print info to {@link System#out}, nothrow.<br/>
+     * <b>Note:</b> use {@link ProcUtil#note(String)} when processing.
+     *
+     * @param pattern SLF4J pattern
+     * @param args    values
+     */
+    default void printf(AbstractProcessor processor,String pattern, Object... args) {
+        System.out.println(MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args).getMessage());
+    }
+
+
+    /**
+     * print into {@link System#err} ,if args have throwable,the throw error.<br/>
+     * <b>Note:</b> use {@link ProcUtil#fatal(String)} when processing.
+     *
+     * @param pattern SLF4J pattern
+     * @param args    values
+     */
+    @SneakyThrows
+    default void errorf(AbstractProcessor processor,String pattern, Object... args) {
+        var m = MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args);
+        System.err.println(m.getMessage());
+        if (m.getThrowable() != null) {
+            m.getThrowable().printStackTrace(System.err);
+            throw m.getThrowable();
+        }
+    }
 
     @Getter
     @Accessors(fluent = true)
@@ -536,4 +596,6 @@ public interface ProcUtil {
         return false;
     }
     //endregion
+
+
 }
