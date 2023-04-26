@@ -17,6 +17,7 @@ package cn.zenliu.domain.modeler.processor;
 
 import com.squareup.javapoet.JavaFile;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.RoundEnvironment;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public abstract class BaseFileProcessor extends AbstractProcessor {
 
     protected final Class<? extends Annotation>[] target;

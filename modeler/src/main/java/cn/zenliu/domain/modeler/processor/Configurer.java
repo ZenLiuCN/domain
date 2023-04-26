@@ -19,6 +19,7 @@ package cn.zenliu.domain.modeler.processor;
 import cn.zenliu.domain.modeler.util.Loader;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 import javax.lang.model.element.Element;
@@ -36,6 +37,7 @@ import java.util.regex.Pattern;
  * @since 2023-04-20
  */
 
+@ApiStatus.AvailableSince("0.1.2")
 public interface Configurer {
     String FILE_NAME = "modeler.properties";
 

@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.annotation;
 
 import cn.zenliu.domain.modeler.prototype.Meta;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.*;
 
@@ -35,6 +36,7 @@ public @interface Gene {
     @Target({ElementType.TYPE})
     @Documented
     @Fields
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Entity {
     }
 
@@ -51,6 +53,7 @@ public @interface Gene {
      */
     @Target({ElementType.TYPE})
     @Documented
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Fields {
     }
 
@@ -60,6 +63,7 @@ public @interface Gene {
      */
     @Target({ElementType.TYPE})
     @Documented
+    @ApiStatus.AvailableSince("0.1.1")
     @interface Mutate {
 
     }

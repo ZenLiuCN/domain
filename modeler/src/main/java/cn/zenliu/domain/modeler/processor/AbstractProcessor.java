@@ -22,6 +22,7 @@ import com.squareup.javapoet.AnnotationSpec;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nullable;
@@ -38,6 +39,7 @@ import java.util.StringJoiner;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public abstract class AbstractProcessor {
 
 

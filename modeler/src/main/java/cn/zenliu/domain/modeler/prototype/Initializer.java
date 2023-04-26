@@ -17,6 +17,7 @@ package cn.zenliu.domain.modeler.prototype;
 
 import cn.zenliu.domain.modeler.annotation.Mode;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.util.Comparator;
 import java.util.NoSuchElementException;
@@ -28,8 +29,8 @@ import java.util.Set;
  */
 @org.immutables.value.Value.Immutable
 @Mode.Values
-public
-interface Initializer {
+@ApiStatus.AvailableSince("0.1.0")
+public interface Initializer {
     /**
      * if the initializer returns initialized result.
      */

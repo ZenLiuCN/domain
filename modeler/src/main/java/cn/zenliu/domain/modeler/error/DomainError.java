@@ -18,6 +18,7 @@ package cn.zenliu.domain.modeler.error;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.Nullable;
@@ -31,6 +32,7 @@ import javax.annotation.Nullable;
  */
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
+@ApiStatus.AvailableSince("0.1.0")
 public class DomainError extends ErrorCodeException {
     @Getter
     protected final String userMessage;

@@ -16,10 +16,9 @@
 package cn.zenliu.domain.modeler.processor;
 
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.lang.annotation.*;
 
 /**
  * add description for {@link AbstractProcessor#desc()}
@@ -29,6 +28,8 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
+@ApiStatus.AvailableSince("0.1.2")
+@Documented
 public @interface Desc {
     String value();
 }

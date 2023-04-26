@@ -15,6 +15,8 @@
 
 package cn.zenliu.domain.modeler.annotation;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.*;
 
 /**
@@ -34,6 +36,7 @@ public @interface Mark {
     @Target({ElementType.METHOD, ElementType.FIELD})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Unique {
     }
 
@@ -44,6 +47,7 @@ public @interface Mark {
     @Target({ElementType.TYPE_USE, ElementType.TYPE_PARAMETER})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface NotEmpty {
     }
 
@@ -53,6 +57,7 @@ public @interface Mark {
     @Target({ElementType.METHOD, ElementType.FIELD})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Ref {
 
         /**
@@ -69,6 +74,7 @@ public @interface Mark {
     @Target({ElementType.METHOD, ElementType.FIELD})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Lookup {
         /**
          * composited with fields
@@ -82,6 +88,7 @@ public @interface Mark {
     @Target({ElementType.TYPE})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Embeddable {
 
     }
@@ -92,6 +99,7 @@ public @interface Mark {
     @Target({ElementType.METHOD, ElementType.FIELD})
     @Documented
     @Inherited
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Embedded {
 
     }

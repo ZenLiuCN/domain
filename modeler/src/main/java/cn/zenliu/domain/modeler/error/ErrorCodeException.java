@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.error;
 
 import lombok.Getter;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.Nullable;
 
@@ -25,6 +26,7 @@ import javax.annotation.Nullable;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public class ErrorCodeException extends RuntimeException {
     @Getter
     protected final int errorCode;

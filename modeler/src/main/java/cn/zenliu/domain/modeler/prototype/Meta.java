@@ -149,6 +149,7 @@ public interface Meta {
      *
      * @see Gene.Mutate
      */
+    @ApiStatus.AvailableSince("0.1.2")
     interface Trait {
 
     }

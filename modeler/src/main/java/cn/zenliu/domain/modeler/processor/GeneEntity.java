@@ -19,6 +19,7 @@ import cn.zenliu.domain.modeler.annotation.Gene;
 import cn.zenliu.domain.modeler.prototype.Meta;
 import com.squareup.javapoet.*;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -30,6 +31,7 @@ import javax.lang.model.element.TypeElement;
  * @since 2023-04-20
  */
 @Desc("generator for Gene.Entity")
+@ApiStatus.AvailableSince("0.1.2")
 public class GeneEntity extends BaseFileProcessor {
     public final String SUFFIX = "Entity";
 

@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.annotation;
 
 import org.immutables.value.Value;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.*;
 
@@ -32,35 +33,37 @@ public @interface Mode {
      */
     @Target({ElementType.TYPE})
     @Documented
-    @interface Prototype{
+    @ApiStatus.AvailableSince("0.1.3")
+    @interface Prototype {
 
     }
 
     /**
-     * marker a field with no Setter generated for a XXXEntity type.
-     * effect with {@link Gene.Entity}
+     * marker a field with no Setter generated for a XXXEntity type. effect with {@link Gene.Entity}
      */
     @Target({ElementType.FIELD, ElementType.METHOD})
     @Documented
+    @ApiStatus.AvailableSince("0.1.0")
     @Inherited
     @interface ReadOnly {
 
     }
 
     /**
-     * mark on a none java bean style getter method as a Field.<br/>
-     * when mark on a Domain Object to define all getter like methods (returns not void,accept nothing) are Field.<br/>
-     * effect with {@link Gene.Entity} and {@link  Gene.Fields}
+     * mark on a none java bean style getter method as a Field.<br/> when mark on a Domain Object to define all getter
+     * like methods (returns not void,accept nothing) are Field.<br/> effect with {@link Gene.Entity} and
+     * {@link  Gene.Fields}
      */
     @Target({ElementType.METHOD, ElementType.TYPE})
     @Documented
+    @ApiStatus.AvailableSince("0.1.0")
     @Inherited
     @interface Field {
 
     }
+
     /**
      * suffix style of Immutables: generate immutable as *Val and Mutable as *Var
-     *
      */
     @Target({ElementType.TYPE})
     @Documented
@@ -69,6 +72,7 @@ public @interface Mode {
             typeModifiable = "*Var",
             defaults = @Value.Immutable(lazyhash = true)
     )
+    @ApiStatus.AvailableSince("0.1.0")
     @interface Values {
     }
 

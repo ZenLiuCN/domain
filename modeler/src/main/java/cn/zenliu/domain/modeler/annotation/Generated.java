@@ -15,6 +15,8 @@
 
 package cn.zenliu.domain.modeler.annotation;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.Repeatable;
 
@@ -26,6 +28,7 @@ import java.lang.annotation.Repeatable;
  */
 @Documented
 @Repeatable(Generated.Generators.class)
+@ApiStatus.AvailableSince("0.1.0")
 public @interface Generated {
     /**
      * the processor info

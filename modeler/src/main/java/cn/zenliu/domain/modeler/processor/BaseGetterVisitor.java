@@ -17,6 +17,7 @@ package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Mode;
 import com.squareup.javapoet.*;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.*;
@@ -29,6 +30,7 @@ import java.util.List;
  * @author Zen.Liu
  * @since 2023-04-22
  */
+@ApiStatus.AvailableSince("0.1.2")
 public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builder, TypeSpec.Builder> {
     protected boolean haveTypeField = false;
     protected TypeMirror root;

@@ -22,6 +22,7 @@ import com.sun.source.util.Trees;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -42,6 +43,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.2")
 public interface ProcUtil {
     /**
      * current enabled processors.

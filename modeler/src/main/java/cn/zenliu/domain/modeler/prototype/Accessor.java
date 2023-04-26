@@ -25,5 +25,5 @@ import org.jetbrains.annotations.ApiStatus;
  */
 @ApiStatus.Experimental
 public interface Accessor<T> {
-    T target();
+    T original();
 }

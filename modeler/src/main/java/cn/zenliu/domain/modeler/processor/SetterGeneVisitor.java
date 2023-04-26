@@ -17,6 +17,7 @@ package cn.zenliu.domain.modeler.processor;
 
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.lang.model.element.ExecutableElement;
 
@@ -24,6 +25,7 @@ import javax.lang.model.element.ExecutableElement;
  * @author Zen.Liu
  * @since 2023-04-22
  */
+@ApiStatus.AvailableSince("0.1.2")
 public class SetterGeneVisitor extends BaseGetterVisitor {
     private final boolean chain;
 

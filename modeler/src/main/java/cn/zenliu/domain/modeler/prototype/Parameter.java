@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.prototype;
 
 import cn.zenliu.domain.modeler.annotation.Mode;
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * @author Zen.Liu
@@ -23,6 +24,7 @@ import cn.zenliu.domain.modeler.annotation.Mode;
  */
 @org.immutables.value.Value.Immutable
 @Mode.Values
+@ApiStatus.AvailableSince("0.1.0")
 public
 interface Parameter {
     String getName();

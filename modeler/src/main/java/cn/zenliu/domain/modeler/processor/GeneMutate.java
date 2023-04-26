@@ -21,6 +21,7 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
@@ -32,6 +33,7 @@ import javax.lang.model.element.TypeElement;
  * @since 2023-04-20
  */
 @Desc("generator for Gene.Mutate")
+@ApiStatus.AvailableSince("0.1.2")
 public class GeneMutate extends BaseFileProcessor {
     public static final String SUFFIX="Mutate";
     public GeneMutate() {

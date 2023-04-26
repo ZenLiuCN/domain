@@ -19,6 +19,7 @@ import cn.zenliu.domain.modeler.annotation.Gene;
 import cn.zenliu.domain.modeler.prototype.Meta;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.TypeSpec;
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.RoundEnvironment;
@@ -34,6 +35,7 @@ import java.util.Set;
  * @since 2023-04-20
  */
 @Desc("generator for Gene.Fields")
+@ApiStatus.AvailableSince("0.1.2")
 public class GeneFields extends BaseFileProcessor {
 
 

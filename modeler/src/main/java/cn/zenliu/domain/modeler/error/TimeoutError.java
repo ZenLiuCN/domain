@@ -15,6 +15,7 @@
 
 package cn.zenliu.domain.modeler.error;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -23,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
  * @author Zen.Liu
  * @since 2023-04-20
  */
+@ApiStatus.AvailableSince("0.1.0")
 public class TimeoutError extends DomainError {
     final static int code=408;
     public TimeoutError(@Nullable String userMessage) {

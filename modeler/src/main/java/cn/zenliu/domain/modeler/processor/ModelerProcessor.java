@@ -18,6 +18,7 @@ package cn.zenliu.domain.modeler.processor;
 import cn.zenliu.domain.modeler.util.Loader;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.ApiStatus;
 import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.processing.*;
@@ -39,6 +40,7 @@ import java.util.stream.Collectors;
  * @since 2023-04-20
  */
 @com.google.auto.service.AutoService(Processor.class)
+@ApiStatus.AvailableSince("0.1.2")
 public class ModelerProcessor implements Processor, ProcUtil {
     private final Map<Pattern, Set<AbstractProcessor>> processors;
     private final Set<String> supportedTypes;
