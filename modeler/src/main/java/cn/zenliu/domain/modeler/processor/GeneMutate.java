@@ -18,14 +18,12 @@ package cn.zenliu.domain.modeler.processor;
 import cn.zenliu.domain.modeler.annotation.Gene;
 import cn.zenliu.domain.modeler.prototype.Meta;
 import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import lombok.SneakyThrows;
 
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 
@@ -64,8 +62,8 @@ public class GeneMutate extends BaseFileProcessor {
         var c = this.preCheck(ele, u);
         if (c == null) return null;
         if (ele instanceof TypeElement t) {
-            if (!mustInterface(u, TARGET, t)) return null;
-            if (!mustNotDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
+            if (notInterface(u, TARGET, t)) return null;
+            if (notDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
             if (!mustInheritOneOf(u, TARGET, t, Meta.Object.class, Meta.Trait.class)) return null;
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),

@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Generated;
+import cn.zenliu.domain.modeler.annotation.Mode;
 import cn.zenliu.domain.modeler.util.Loader;
 import com.squareup.javapoet.AnnotationSpec;
 import lombok.Getter;
@@ -177,34 +178,27 @@ public abstract class AbstractProcessor {
             if (c.isDebug()) u.mandatoryWarn(self(), "disabled when process {}", ele);
             return null;
         }
-        if (c.isDebug()) info( "Configs {} for target '{}'", c, ele);
+        if (c.isDebug()) info("Configs {} for target '{}'", c, ele);
         return c;
     }
 
     protected abstract AbstractProcessor self();
 
-    protected boolean mustInterface(ProcUtil u, String anno, TypeElement t) {
+    protected boolean notInterface(ProcUtil u, String anno, TypeElement t) {
         if (!t.getKind().isInterface()) {
             u.mandatoryWarn(self(), "type {} not a valid target of {}, only interface supported", anno, t);
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
-    protected boolean mustDirectInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
-        if (!u.isDirectlyInherit(t, type)) {
-            u.mandatoryWarn(self(), "type {} not a valid target of {}, not direct inherit {}", t, anno, type.getCanonicalName());
-            return false;
-        }
-        return true;
-    }
 
-    protected boolean mustInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
+    protected boolean notInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
         if (!u.isAssignable(t.asType(), type)) {
             u.mandatoryWarn(self(), "type {} not a valid target of {}, not inherit {}", t, anno, type.getCanonicalName());
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
     protected boolean mustInheritOneOf(ProcUtil u, String anno, TypeElement t, Class<?>... types) {
@@ -215,23 +209,24 @@ public abstract class AbstractProcessor {
         return false;
     }
 
-    protected boolean mustNotDirectInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
+    protected boolean notDirectInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
         if (u.isDirectlyInherit(t, type)) {
             u.mandatoryWarn(self(), "type {} not a valid target of {}, should not direct inherit {}", t, anno, type.getCanonicalName());
-            return false;
+            return true;
         }
-        return true;
-    }
-
-    protected boolean mustNotInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
-        if (u.isAssignable(t.asType(), type)) {
-            u.mandatoryWarn(self(), "type {} not a valid target of {}, should not inherit {}", t, anno, type.getCanonicalName());
-            return false;
-        }
-        return true;
+        return false;
     }
 
     protected boolean isAnnotated(TypeElement t, Class<? extends Annotation> annoType) {
         return t.getAnnotation(annoType) != null;
+    }
+
+    /**
+     * @param t the element to check
+     * @return true for annotated with Mode.Prototype
+     */
+    protected boolean isPrototype(Element t) {
+        if (t == null) return false;
+        return t.getAnnotationsByType(Mode.Prototype.class).length > 0;
     }
 }

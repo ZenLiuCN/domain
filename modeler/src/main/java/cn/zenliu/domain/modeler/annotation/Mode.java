@@ -27,6 +27,14 @@ import java.lang.annotation.*;
  */
 @Retention(RetentionPolicy.SOURCE)
 public @interface Mode {
+    /**
+     * Mark a Type is Prototype that should be processed by generators
+     */
+    @Target({ElementType.TYPE})
+    @Documented
+    @interface Prototype{
+
+    }
 
     /**
      * marker a field with no Setter generated for a XXXEntity type.

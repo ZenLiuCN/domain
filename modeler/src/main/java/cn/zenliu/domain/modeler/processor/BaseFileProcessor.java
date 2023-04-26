@@ -47,17 +47,18 @@ public abstract class BaseFileProcessor extends AbstractProcessor {
     @SneakyThrows
     @Override
     public boolean process(Element element, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, ProcUtil u) {
-        if (element != null) {
-            if(u.isDebug()) u.note("{} will process {}",name(),element);
+        if (element != null && !isPrototype(element)) {
+            if (u.isDebug()) u.note("{} will process {}", name(), element);
             var f = processElement(element, roundEnv, u);
-            if(u.isDebug()) u.note("{} done process {}  {} file",name(),element,f==null?"have":"none");
+            if (u.isDebug()) u.note("{} done process {}  {} file", name(), element, f == null ? "have" : "none");
             if (f != null) f.writeTo(u.filer());
         } else {
             for (var ann : target) {
                 for (var ele : roundEnv.getElementsAnnotatedWith(ann)) {
-                    if(u.isDebug()) u.note("{} will process {}",name(),ele);
+                    if (isPrototype(element)) continue;
+                    if (u.isDebug()) u.note("{} will process {}", name(), ele);
                     var f = processElement(ele, roundEnv, u);
-                    if(u.isDebug()) u.note("{} done process {}  {} file",name(),ele,f==null?"have":"none");
+                    if (u.isDebug()) u.note("{} done process {}  {} file", name(), ele, f == null ? "have" : "none");
                     if (f != null) f.writeTo(u.filer());
                 }
             }

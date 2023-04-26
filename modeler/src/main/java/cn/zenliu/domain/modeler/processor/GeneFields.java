@@ -52,8 +52,8 @@ public class GeneFields extends BaseFileProcessor {
         if (c == null) return null;
 
         if (ele instanceof TypeElement t) {
-            if (!mustInterface(u, TARGET, t)) return null;
-            if (!mustInherit(u, TARGET, t, Meta.Object.class)) return null;
+            if (notInterface(u, TARGET, t)) return null;
+            if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
             var name = String.join(".", u.elements().getPackageOf(ele).getQualifiedName().toString(), t.getSimpleName() + "Fields");
             if (!processed.add(name)) return null;
             return JavaFile.builder(

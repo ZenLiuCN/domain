@@ -93,9 +93,9 @@ public class GeneEntity extends BaseFileProcessor {
         var c = this.preCheck(ele, u);
         if (c == null) return null;
         if (ele instanceof TypeElement t) {
-            if (!mustInterface(u, TARGET, t)) return null;
-            if (!mustNotDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
-            if (!mustInherit(u, TARGET, t, Meta.Object.class)) return null;
+            if (notInterface(u, TARGET, t)) return null;
+            if (notDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
+            if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
             var isInheritedEntity = u.isAssignable(t.asType(), Meta.Entity.class);
             var isGeneric = !t.getTypeParameters().isEmpty();
             return JavaFile.builder(
