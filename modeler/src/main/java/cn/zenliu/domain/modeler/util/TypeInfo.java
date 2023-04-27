@@ -18,6 +18,7 @@ package cn.zenliu.domain.modeler.util;
 import cn.zenliu.domain.modeler.annotation.Info;
 import lombok.*;
 import lombok.experimental.Accessors;
+import org.jetbrains.annotations.ApiStatus;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -29,6 +30,7 @@ import javax.lang.model.type.TypeMirror;
 import java.lang.reflect.*;
 import java.util.*;
 
+@ApiStatus.AvailableSince("0.1.4")
 @Builder
 @ToString
 @EqualsAndHashCode

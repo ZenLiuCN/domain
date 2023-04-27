@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.annotation;
 
 import cn.zenliu.domain.modeler.util.TypeInfo;
+import org.jetbrains.annotations.ApiStatus;
 
 import java.lang.annotation.*;
 
@@ -25,6 +26,7 @@ import java.lang.annotation.*;
  * @author Zen.Liu
  * @since 2023-04-27
  */
+@ApiStatus.AvailableSince("0.1.4")
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Info {
