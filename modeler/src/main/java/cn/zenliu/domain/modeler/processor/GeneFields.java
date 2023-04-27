@@ -16,9 +16,11 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Gene;
+import cn.zenliu.domain.modeler.annotation.Info;
 import cn.zenliu.domain.modeler.prototype.Meta;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
+import cn.zenliu.domain.modeler.util.TypeInfo;
+import com.google.common.io.ByteStreams;
+import com.squareup.javapoet.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,8 +29,13 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import java.lang.reflect.Array;
+import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
  * @author Zen.Liu
@@ -89,8 +96,8 @@ public class GeneFields extends BaseFileProcessor {
             //not getter
             if (
                     notInstanceMethod(e) ||
-                    isObjectMethod(e) ||
-                    notGetterLikeMethod(e)
+                            isObjectMethod(e) ||
+                            notGetterLikeMethod(e)
 
             ) {
                 u.other("Ignore Object method: {}", e);
@@ -102,10 +109,35 @@ public class GeneFields extends BaseFileProcessor {
                 return builder;
             }
             u.other("Generate Field from Object method: {}", e);
+            var ret = e.getReturnType();
+            var typeName = u.toTypeName(ret);
+            TypeInfo info=null;
+            String cn;
+            if (typeName instanceof ClassName c) {
+                cn = c.toString();
+            } else if (typeName instanceof ParameterizedTypeName p) {
+                cn = p.rawType.toString();
+                info=TypeInfo.from(ret, u.env());
+            } else if (typeName instanceof ArrayTypeName p) {
+                cn = p.toString();
+            } else {
+                cn = typeName.toString();
+            }
+            if(info!=null){
+                var b=new StringJoiner(",","{","}");
+                for(var by:TypeInfo.serialize(info)) b.add("0x"+Integer.toHexString(by));
+                return builder
+                        .addField(declareStaticFinalField(String.class, n.toUpperCase()).initializer("$S", n).build())
+                        .addField(declareStaticFinalField(Class.class, n.toUpperCase() + Meta.Fields.TYPE_SUFFIX)
+                                .addAnnotation(AnnotationSpec.builder(Info.Type.class)
+                                        .addMember("value","$L", b)
+                                        .build())
+                                .initializer("$L.class", cn).build());
+            }
             return builder
                     .addField(declareStaticFinalField(String.class, n.toUpperCase()).initializer("$S", n).build())
                     .addField(declareStaticFinalField(Class.class, n.toUpperCase() + Meta.Fields.TYPE_SUFFIX)
-                            .initializer("$L.class", u.toClassName(e.getReturnType())).build());
+                            .initializer("$L.class", cn).build());
         }
 
 

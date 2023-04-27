@@ -13,17 +13,37 @@
  *  As a special exception, the copyright holders of this library give you permission to link this library with independent modules to produce an executable, regardless of the license terms of these independent modules, and to copy and distribute the resulting executable under terms of your choice, provided that you also meet, for each linked independent module, the terms and conditions of the license of that module. An independent module is a module which is not derived from or based on this library. If you modify this library, you may extend this exception to your version of the library, but you are not obligated to do so. If you do not wish to do so, delete this exception statement from your version.
  */
 
-package cn.zenliu.domain.modeler.prototype;
+package cn.zenliu.domain.modeler.annotation;
 
-import org.jetbrains.annotations.ApiStatus;
+import cn.zenliu.domain.modeler.util.TypeInfo;
+
+import java.lang.annotation.*;
 
 /**
- * Accessor is a base type for extending type abilities.
+ * information meta
  *
  * @author Zen.Liu
- * @since 2023-04-20
+ * @since 2023-04-27
  */
-@ApiStatus.AvailableSince("0.1.4")
-public interface Accessor<T> {
-    T origin();
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Info {
+    /**
+     * comment for annotated type
+     */
+    String value() default "";
+
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.FIELD)
+    @Documented
+    @interface Type {
+        /**
+         * Base64 encoded binary form of {@link TypeInfo}
+         */
+        byte[] value();
+
+
+    }
+
 }

@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Generated;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.Trees;
@@ -203,7 +204,7 @@ public interface ProcUtil {
      * @param pattern SLF4J pattern
      * @param args    values
      */
-    default void printf(AbstractProcessor processor,String pattern, Object... args) {
+    default void printf(AbstractProcessor processor, String pattern, Object... args) {
         System.out.println(MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args).getMessage());
     }
 
@@ -216,7 +217,7 @@ public interface ProcUtil {
      * @param args    values
      */
     @SneakyThrows
-    default void errorf(AbstractProcessor processor,String pattern, Object... args) {
+    default void errorf(AbstractProcessor processor, String pattern, Object... args) {
         var m = MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args);
         System.err.println(m.getMessage());
         if (m.getThrowable() != null) {
@@ -509,21 +510,18 @@ public interface ProcUtil {
         return null;
     }
 
-    default String toClassName(TypeMirror type) {
+    default TypeName toTypeName(TypeMirror type) {
         if (type.getKind() == TypeKind.TYPEVAR) {
-            return TypeName.get(Object.class).toString();
+            return TypeName.get(Object.class);
         } else {
             var t = typeElement(type);
             if (t == null) {
-                return TypeName.get(Object.class).toString();
+                return TypeName.get(Object.class);
             }
-            if (!t.getTypeParameters().isEmpty()) {
-                return t.getQualifiedName().toString();
-            } else {
-                return TypeName.get(type).toString();
-            }
+            return TypeName.get(type);
         }
     }
+
     //endregion
 
 
@@ -587,7 +585,7 @@ public interface ProcUtil {
                     var i = new AtomicInteger();
                     if (
                             ex.getParameters().size() == param.size() &&
-                            ex.getParameters().stream().allMatch(x -> TypeName.get(x.asType()).equals(param.get(i.getAndIncrement())))
+                                    ex.getParameters().stream().allMatch(x -> TypeName.get(x.asType()).equals(param.get(i.getAndIncrement())))
                     )
                         return true;
                 } else {

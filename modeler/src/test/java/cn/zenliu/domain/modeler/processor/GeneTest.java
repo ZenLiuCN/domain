@@ -23,8 +23,10 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardLocation;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.function.Predicate;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
@@ -32,7 +34,7 @@ import static com.google.testing.compile.Compiler.javac;
 class GeneTest {
     static final boolean print =
             System.getProperties().containsKey("sun.java.command") &&
-            System.getProperties().getProperty("sun.java.command").contains("com.intellij");
+                    System.getProperties().getProperty("sun.java.command").contains("com.intellij");
 
     @SneakyThrows
     static void config(String content) {
@@ -56,6 +58,33 @@ class GeneTest {
                           }
                         """));
         assertThat(compilation).succeededWithoutWarnings();
+        print(compilation);
+        assertThat(compilation)
+                .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestFields.java")
+                .contentsAsUtf8String()
+                .isNotEmpty();
+
+    }
+
+    @SneakyThrows
+    @Test
+    void geneFieldsComplex() {
+        config("proc.fields.processor=cn.zenliu.domain.modeler.processor.GeneFields");
+        var compilation = javac()
+                .withProcessors(new ModelerProcessor())
+                .compile(JavaFileObjects.forSourceString("MetaTest", """
+                         package some.pack;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
+                         import java.util.Map;
+                          @Fields
+                          public interface MetaTest<T> extends Meta.Object {
+                               Map<T,String> getId();
+                          }
+                        """));
+        assertThat(compilation).succeededWithoutWarnings();
+        save(compilation,x->x.isNameCompatible("MetaTestFields", JavaFileObject.Kind.CLASS),Paths.get("MetaTestFields.class"));
         print(compilation);
         assertThat(compilation)
                 .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestFields.java")
@@ -241,6 +270,16 @@ class GeneTest {
             try (var r = f.openInputStream()) {
                 r.transferTo(System.out);
             }
+        }
+    }
+
+    @SneakyThrows
+    static void save(Compilation compilation, Predicate<JavaFileObject> filter, Path out) {
+        for (var f : compilation.generatedFiles()) {
+            if (filter.test(f))
+                try (var r = f.openInputStream()) {
+                    r.transferTo(Files.newOutputStream(out, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE));
+                }
         }
     }
 }
