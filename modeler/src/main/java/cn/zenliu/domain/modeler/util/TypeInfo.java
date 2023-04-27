@@ -36,6 +36,9 @@ public class TypeInfo {
     @Getter
     @Accessors(fluent = true)
     public static class LazyClass {
+        /**
+         * The class name, same as {@link Class#getName()}
+         */
         final String name;
 
 
@@ -88,21 +91,52 @@ public class TypeInfo {
         public static LazyClass OBJECT = of(Object.class);
     }
 
+    @Getter
     final String name;
+
+    public Class<?> getTypeClass() {
+        return typeClass.cls();
+    }
+
     final LazyClass typeClass;
+    public LazyClass typeClass() {
+        return typeClass;
+    }
+    @Getter
     final TypeInfo type;
 
+    @Getter
     final boolean parameterized;
+    @Getter
     final List<TypeInfo> typeArguments;
 
+    @Getter
     final boolean array;
 
+    @Getter
     final boolean boundary;
+    @Getter
     final List<TypeInfo> upper;
+    @Getter
     final List<TypeInfo> lower;
 
+    /**
+     * check one of {@link #typeClass} or {@link #type} should exist;
+     */
     public boolean empty() {
         return typeClass == null && type == null;
+    }
+
+    /**
+     * Current info not contains any things but a {@link #type}
+     */
+    public boolean isHolder() {
+        return type != null &&
+                (name == null || name.isEmpty()) &&
+                !parameterized &&
+                !boundary &&
+                !array &&
+                typeClass == null;
     }
 
     /**
@@ -110,13 +144,7 @@ public class TypeInfo {
      */
     public TypeInfo flatten() {
         if (empty()) return this;
-        if (
-                (name == null || name.isEmpty()) &&
-                        !parameterized &&
-                        !boundary &&
-                        !array &&
-                        typeClass == null
-        ) {
+        if (isHolder()) {
             return type.flatten();
         }
         return this;
@@ -221,16 +249,27 @@ public class TypeInfo {
         }
     }
 
+    /**
+     * Write to binary present.
+     */
     public static byte[] serialize(TypeInfo info) {
         var buf = Bytes.write(new byte[1024], 0, 256);
         serialize(info, buf);
         return Arrays.copyOf(buf.buf(), buf.index());
     }
 
+    /**
+     * From a byte array.
+     */
     public static TypeInfo deserialize(byte[] buf) {
         return deserialize(Bytes.read(buf));
     }
 
+    /**
+     * From a Base64 binary.
+     *
+     * @param base64 base64 std encoded string
+     */
     public static TypeInfo deserialize(String base64) {
         return deserialize(Bytes.read(Base64.getDecoder().decode(base64)));
     }
@@ -304,6 +343,12 @@ public class TypeInfo {
         return Optional.of(deserialize(a[0].value()));
     }
 
+    /**
+     * Create from an APT TypeMirror.
+     *
+     * @param info TypeMirror
+     * @param env  processing environment.
+     */
     @SneakyThrows
     public static TypeInfo from(TypeMirror info, ProcessingEnvironment env) {
         var b = TypeInfo.builder().name("");

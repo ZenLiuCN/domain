@@ -25,7 +25,7 @@ a toolset for domain design.
     <dependecy>
         <groupId>io.github.zenliucn.domain</groupId>
         <artifactId>modeler</artifactId>
-        <version>0.1.0</version>
+        <version>${current.version}</version>
     </dependecy>
     <!-- required for use ModelerProcessor -->
     <dependency>
