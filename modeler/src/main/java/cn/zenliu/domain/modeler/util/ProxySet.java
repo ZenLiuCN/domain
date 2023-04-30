@@ -106,18 +106,7 @@ public interface ProxySet<E, C extends Collection<E>> extends Set<E> {
         unwrap().clear();
     }
 
-    @Override
-    default boolean equals(Object o) {
-        if (o instanceof ProxySet<?, ?> p) {
-            return Objects.equals(p.unwrap(), unwrap());
-        }
-        return unwrap().equals(o);
-    }
 
-    @Override
-    default int hashCode() {
-        return unwrap().hashCode();
-    }
 
     /**
      * a implement with extra hash set check.
@@ -248,6 +237,19 @@ public interface ProxySet<E, C extends Collection<E>> extends Set<E> {
                 }
             }
             return removed;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof ProxySet<?, ?> p) {
+                return Objects.equals(p.unwrap(), unwrap());
+            }
+            return unwrap().equals(o);
+        }
+
+        @Override
+        public int hashCode() {
+            return unwrap().hashCode();
         }
     }
 
