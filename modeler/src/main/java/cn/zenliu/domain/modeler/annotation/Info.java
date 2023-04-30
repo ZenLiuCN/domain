@@ -36,8 +36,11 @@ public @interface Info {
     String value() default "";
 
 
+    /**
+     * on {@link cn.zenliu.domain.modeler.prototype.Meta.Fields} for Generic info of Type level.
+     */
     @Retention(RetentionPolicy.RUNTIME)
-    @Target(ElementType.FIELD)
+    @Target({ElementType.FIELD,ElementType.TYPE})
     @Documented
     @interface Type {
         /**

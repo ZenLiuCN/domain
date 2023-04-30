@@ -21,8 +21,10 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
+import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.ElementScanner14;
 import java.util.List;
 
@@ -109,10 +111,16 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
         return s;
     }
 
+
+
+
+
     protected MethodSpec.Builder declareSetter(String methodName, ExecutableElement e) {
+        var re = u.typeElement(root);
+        var retType = u.resolveTypeName(e.getReturnType(), e, re);
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)
-                .addParameter(ParameterSpec.builder(TypeName.get(e.getReturnType()), "v").build());
+                .addParameter(ParameterSpec.builder(retType, "v").build());
     }
 
     protected FieldSpec.Builder declareStaticFinalField(Class<?> type, String name) {
@@ -120,16 +128,16 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
     }
 
     /**
-     * @param e executable
+     * @param e               executable
      * @param ignoreReadyOnly not allow {@link Mode.ReadOnly} as a Getter
      * @return true:  not a getter
      */
     protected boolean notGetter(ExecutableElement e, boolean ignoreReadyOnly) {
         if (
                 notInstanceMethod(e) ||
-                isObjectMethod(e) ||
-                notGetterLikeMethod(e) ||
-                (ignoreReadyOnly && isReadyOnly(e))
+                        isObjectMethod(e) ||
+                        notGetterLikeMethod(e) ||
+                        (ignoreReadyOnly && isReadyOnly(e))
 
         ) {
             u.other("ignore method: {}", e);

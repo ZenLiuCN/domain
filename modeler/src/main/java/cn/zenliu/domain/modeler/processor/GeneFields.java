@@ -19,7 +19,6 @@ import cn.zenliu.domain.modeler.annotation.Gene;
 import cn.zenliu.domain.modeler.annotation.Info;
 import cn.zenliu.domain.modeler.prototype.Meta;
 import cn.zenliu.domain.modeler.util.TypeInfo;
-import com.google.common.io.ByteStreams;
 import com.squareup.javapoet.*;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
@@ -29,13 +28,9 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
-import java.lang.reflect.Array;
-import java.util.Base64;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringJoiner;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
  * @author Zen.Liu
@@ -65,15 +60,26 @@ public class GeneFields extends BaseFileProcessor {
             if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
             var name = String.join(".", u.elements().getPackageOf(ele).getQualifiedName().toString(), t.getSimpleName() + "Fields");
             if (!processed.add(name)) return null;
+            var typeInfo =
+                    (!t.getTypeParameters().isEmpty() ||
+                            t.getInterfaces().stream().noneMatch(x -> u.typeElement(x).getTypeParameters().isEmpty()))
+                            ? TypeInfo.from(t.asType(), u.env()) : null;
+            var builder = TypeSpec
+                    .interfaceBuilder(t.getSimpleName() + "Fields")
+                    .addModifiers(Modifier.PUBLIC)
+                    .addSuperinterface(Meta.Fields.class)
+                    .addAnnotation(generated());
+            if (typeInfo != null) {
+                if (c.isDebug()) u.printf(this, "{} type info: {}", t, typeInfo);
+                var b = new StringJoiner(",", "{", "}");
+                for (var by : TypeInfo.serialize(typeInfo)) b.add("0x" + Integer.toHexString(by));
+                builder.addAnnotation(AnnotationSpec.builder(Info.Type.class)
+                        .addMember("value", "$L", b)
+                        .build());
+            }
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            t.accept(new Visitor(u),
-                                            TypeSpec
-                                                    .interfaceBuilder(t.getSimpleName() + "Fields")
-                                                    .addModifiers(Modifier.PUBLIC)
-                                                    .addSuperinterface(Meta.Fields.class)
-                                                    .addAnnotation(generated())
-                                    )
+                            t.accept(new Visitor(u, c.isDebug()), builder)
                                     .build())
                     .build();
         }
@@ -87,8 +93,11 @@ public class GeneFields extends BaseFileProcessor {
     }
 
     static class Visitor extends BaseGetterVisitor {
-        Visitor(ProcUtil u) {
+        private final boolean debug;
+
+        Visitor(ProcUtil u, boolean debug) {
             super(u);
+            this.debug = debug;
         }
 
         @Override
@@ -111,26 +120,27 @@ public class GeneFields extends BaseFileProcessor {
             u.other("Generate Field from Object method: {}", e);
             var ret = e.getReturnType();
             var typeName = u.toTypeName(ret);
-            TypeInfo info=null;
+            TypeInfo info = null;
             String cn;
             if (typeName instanceof ClassName c) {
                 cn = c.toString();
             } else if (typeName instanceof ParameterizedTypeName p) {
                 cn = p.rawType.toString();
-                info=TypeInfo.from(ret, u.env());
+                info = TypeInfo.from(ret, u.env());
             } else if (typeName instanceof ArrayTypeName p) {
                 cn = p.toString();
             } else {
                 cn = typeName.toString();
             }
-            if(info!=null){
-                var b=new StringJoiner(",","{","}");
-                for(var by:TypeInfo.serialize(info)) b.add("0x"+Integer.toHexString(by));
+            if (info != null) {
+                if (debug) u.printf("GeneFields", "{} type info: {}", e, info);
+                var b = new StringJoiner(",", "{", "}");
+                for (var by : TypeInfo.serialize(info)) b.add("0x" + Integer.toHexString(by));
                 return builder
                         .addField(declareStaticFinalField(String.class, n.toUpperCase()).initializer("$S", n).build())
                         .addField(declareStaticFinalField(Class.class, n.toUpperCase() + Meta.Fields.TYPE_SUFFIX)
                                 .addAnnotation(AnnotationSpec.builder(Info.Type.class)
-                                        .addMember("value","$L", b)
+                                        .addMember("value", "$L", b)
                                         .build())
                                 .initializer("$L.class", cn).build());
             }

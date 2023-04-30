@@ -17,6 +17,7 @@ package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Generated;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.sun.source.util.JavacTask;
 import com.sun.source.util.Trees;
@@ -207,7 +208,9 @@ public interface ProcUtil {
     default void printf(AbstractProcessor processor, String pattern, Object... args) {
         System.out.println(MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args).getMessage());
     }
-
+    default void printf(String name, String pattern, Object... args) {
+        System.out.println(MessageFormatter.arrayFormat("[" + name + "] " + pattern, args).getMessage());
+    }
 
     /**
      * print into {@link System#err} ,if args have throwable,the throw error.<br/>
@@ -594,6 +597,62 @@ public interface ProcUtil {
             }
         }
         return false;
+    }
+
+    /**
+     * @param v the type variable
+     * @param method optional method
+     * @param element the element
+     * @return most possible typename of the variable
+     */
+    default TypeName resolveTypeArgument(TypeVariable v, @Nullable ExecutableElement method, TypeElement element) {
+        var name = v.asElement().getSimpleName();
+        if (method != null && method.getTypeParameters().stream().anyMatch(x -> x.getSimpleName().equals(name)))
+            return TypeName.get(v);
+        if (element.getTypeParameters().stream().anyMatch(x -> x.getSimpleName().equals(name))) return TypeName.get(v);
+        for (var face : element.getInterfaces()) {
+            if (face instanceof DeclaredType d) {
+                var names = ((TypeElement) d.asElement()).getTypeParameters();
+                for (int i = 0; i < names.size(); i++) {
+                    var n = names.get(i).getSimpleName();
+                    if (n.equals(name)) {
+                        var types = d.getTypeArguments();
+                        return TypeName.get(types.get(i));
+                    }
+                }
+            }
+        }
+        return TypeName.get(v);
+    }
+
+    /**
+     * @param t the type
+     * @param method optional method
+     * @param element element
+     * @return most possible type name
+     */
+    default TypeName resolveTypeName(TypeMirror t, @Nullable ExecutableElement method, TypeElement element) {
+        if (t.getKind() == TypeKind.TYPEVAR) {
+            var v = ((TypeVariable) t);
+            return resolveTypeArgument(v, method, element);
+        } else if (t.getKind() == TypeKind.ERROR) {
+            //should not happen.
+            return TypeName.get(t);
+        } else if (t.getKind() == TypeKind.DECLARED) {
+            var de = (DeclaredType) t;
+            if (de.getTypeArguments().size() == 0) return TypeName.get(t);
+            else {
+                var vs = de.getTypeArguments().stream()
+                        .map(v -> {
+                            if (v instanceof TypeVariable tv) return resolveTypeArgument(tv, method, element);
+                            return TypeName.get(v);
+                        }).toList();
+                var cn = ClassName.get((TypeElement) de.asElement());
+                return ParameterizedTypeName.get(cn, vs.toArray(TypeName[]::new));
+            }
+        } else {
+            return TypeName.get(t);
+        }
     }
     //endregion
 

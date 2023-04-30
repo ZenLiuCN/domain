@@ -295,6 +295,42 @@ class GeneTest {
                 .contentsAsUtf8String()
                 .isNotEmpty();
     }
+
+    @SneakyThrows
+    @Test
+    void geneWithNestGenericObjectEntity() {
+        config("""
+                proc.entity.chain=true
+                proc.entity.object=true
+                proc.entity.processor=cn.zenliu.domain.modeler.processor.GeneEntity
+                """);
+        var compilation = javac()
+                .withProcessors(new ModelerProcessor())
+                .compile(JavaFileObjects.forSourceString("MetaTest", """
+                         package some.pack;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Mutate;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
+                         import java.util.List;
+                    
+                          public interface MetaTest<T,X extends MetaTest<T,X>> extends Meta.Trait {
+                             T getId();
+                             X getParent();
+                             List<X> getChildren();
+                             @Entity
+                             interface Sub<T> extends MetaTest<T,Sub<T>>,Meta.Object{
+                                String getName();
+                             }
+                          }
+                        """));
+        assertThat(compilation).succeededWithoutWarnings();
+        print(compilation);
+        assertThat(compilation)
+                .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/SubEntity.java")
+                .contentsAsUtf8String()
+                .isNotEmpty();
+    }
     @SneakyThrows
     static void print(Compilation compilation) {
         if (!print) return;

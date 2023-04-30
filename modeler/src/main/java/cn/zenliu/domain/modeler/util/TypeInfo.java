@@ -16,7 +16,10 @@
 package cn.zenliu.domain.modeler.util;
 
 import cn.zenliu.domain.modeler.annotation.Info;
-import lombok.*;
+import lombok.Builder;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -32,9 +35,20 @@ import java.util.*;
 
 @ApiStatus.AvailableSince("0.1.4")
 @Builder
-@ToString
-@EqualsAndHashCode
+@EqualsAndHashCode(doNotUseGetters = true)
 public class TypeInfo {
+    public String toString() {
+        return "TypeInfo(name=" + this.name +
+                ", typeClass=" + (this.typeClass != null ? this.typeClass.name : null) +
+                ", type=" + this.type +
+                ", parameterized=" + this.parameterized +
+                ", typeArguments=" + this.typeArguments +
+                ", array=" + this.array +
+                ", boundary=" + this.boundary +
+                ", upper=" + this.upper +
+                ", lower=" + this.lower + ")";
+    }
+
     @Getter
     @Accessors(fluent = true)
     public static class LazyClass {
@@ -111,6 +125,9 @@ public class TypeInfo {
 
     @Getter
     final boolean parameterized;
+    /**
+     * for a root container, it also contains type parameters passed to super interfaces and classes.
+     */
     @Getter
     final List<TypeInfo> typeArguments;
 
@@ -336,6 +353,26 @@ public class TypeInfo {
         }
         return b.build().flatten();
     }
+/*
+    *//**
+     * @param info the root type
+     * @return info with super class and interfaces
+     *//*
+    public static TypeInfo fromRoot(java.lang.reflect.Type info) {
+        var root = from(info);
+        if (info instanceof Class<?> c) {
+            for (var face : c.getGenericInterfaces()) {
+                if (face.getTypeName().contains("<")) {
+                    root.typeArguments.add(from(face));
+                }
+            }
+            var su = c.getGenericSuperclass();
+            if (su.getTypeName().contains("<")) {
+                root.typeArguments.add(from(su));
+            }
+        }
+        return root;
+    }*/
 
     /**
      * @param classTypeField the field may have a {@link Info.Type}
@@ -435,6 +472,33 @@ public class TypeInfo {
         }
         return b.build().flatten();
     }
+
+    /**
+     * Create from an APT TypeMirror, with super class and interfaces.
+     *
+     * @param info TypeMirror
+     * @param env  processing environment.
+     */
+/*
+    public static TypeInfo fromRoot(TypeMirror info, ProcessingEnvironment env) {
+        var root = from(info, env);
+        if (info instanceof DeclaredType a) {
+            var raw = (TypeElement) a.asElement();
+            for (var face : raw.getInterfaces()) {
+                var tFace = (TypeElement) env.getTypeUtils().asElement(face);
+                if (!tFace.getTypeParameters().isEmpty()) {
+                    root.typeArguments.add(from(face, env));
+                }
+            }
+            var su = raw.getSuperclass();
+            var tsu = (TypeElement) env.getTypeUtils().asElement(su);
+            if (!tsu.getTypeParameters().isEmpty()) {
+                root.typeArguments.add(from(su, env));
+            }
+        }
+        return root;
+    }
+*/
 
     /**
      * @param e type element
