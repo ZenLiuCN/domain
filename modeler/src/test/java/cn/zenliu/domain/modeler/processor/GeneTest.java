@@ -262,6 +262,40 @@ class GeneTest {
     }
 
     @SneakyThrows
+    @Test
+    void geneMutateWithObjectEntity() {
+        config("""
+                proc.mutate.chain=true
+                proc.mutate.processor=cn.zenliu.domain.modeler.processor.GeneMutate
+                proc.entity.chain=true
+                proc.entity.object=true
+                proc.entity.processor=cn.zenliu.domain.modeler.processor.GeneEntity
+                """);
+        var compilation = javac()
+                .withProcessors(new ModelerProcessor())
+                .compile(JavaFileObjects.forSourceString("MetaTest", """
+                         package some.pack;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Mutate;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Fields;
+                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.prototype.Meta;
+                          @Mutate @Entity
+                          public interface MetaTest<T> extends Meta.Object {
+                                                         T getId();
+                          }
+                        """));
+        assertThat(compilation).succeededWithoutWarnings();
+        print(compilation);
+        assertThat(compilation)
+                .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestMutate.java")
+                .contentsAsUtf8String()
+                .isNotEmpty();
+        assertThat(compilation)
+                .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestEntity.java")
+                .contentsAsUtf8String()
+                .isNotEmpty();
+    }
+    @SneakyThrows
     static void print(Compilation compilation) {
         if (!print) return;
         for (var f : compilation.generatedFiles()) {

@@ -28,10 +28,12 @@ import javax.lang.model.element.ExecutableElement;
 @ApiStatus.AvailableSince("0.1.2")
 public class SetterGeneVisitor extends BaseGetterVisitor {
     private final boolean chain;
+    private final TypeName self;
 
-    SetterGeneVisitor(ProcUtil u, boolean chain) {
+    SetterGeneVisitor(ProcUtil u, boolean chain, TypeName self) {
         super(u);
         this.chain = chain;
+        this.self = self;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class SetterGeneVisitor extends BaseGetterVisitor {
         if (n == null || hasDeclaredSetter(n, e)) return builder;
         u.other("Generate Setter from method: {}", e);
         var m = declareSetter(n, e);
-        return builder.addMethod(chain ? m.returns(TypeName.get(root)).build() : m.build());
+        return builder.addMethod(chain ? m.returns(self == null ? TypeName.get(root) : self).build() : m.build());
     }
 
 }

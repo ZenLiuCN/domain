@@ -39,7 +39,10 @@ public class GeneEntity extends BaseFileProcessor {
         super(Gene.Entity.class);
     }
 
-    protected TypeSpec.Builder makeType(boolean isGeneric, boolean isInheritedEntity, TypeElement t) {
+    protected Pair<TypeSpec.Builder, TypeName> makeType(boolean isGeneric,
+                                                        boolean isInheritedEntity,
+                                                        boolean useObjectStyle,
+                                                        TypeElement t) {
         var type = (
                 isGeneric
                         ? TypeSpec
@@ -53,11 +56,22 @@ public class GeneEntity extends BaseFileProcessor {
         )
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(t.asType());
-        type = isInheritedEntity ? type : type.addSuperinterface(Meta.Entity.class);
-        return type.addAnnotation(generated());
+        type = isInheritedEntity ? type : type.addSuperinterface(useObjectStyle ? Meta.ObjectStyleEntity.class : Meta.Entity.class);
+        type = type.addAnnotation(generated());
+        var pkg = ClassName.get(t).packageName();
+        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
+        if (isGeneric) {
+            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
+                    .map(TypeVariableName::get)
+                    .toArray(TypeVariableName[]::new));
+        }
+        return new Pair<>(type, typeName);
     }
 
-    protected TypeSpec.Builder makeInheritMutateType(boolean isGeneric, boolean isInheritedEntity, boolean useObjectStyle, TypeElement t) {
+    protected Pair<TypeSpec.Builder, TypeName> makeInheritMutateType(boolean isGeneric,
+                                                                     boolean isInheritedEntity,
+                                                                     boolean useObjectStyle,
+                                                                     TypeElement t) {
         final TypeName mut;
         if (isGeneric) {
             var cls = (ParameterizedTypeName) ParameterizedTypeName.get(t.asType());
@@ -85,7 +99,15 @@ public class GeneEntity extends BaseFileProcessor {
                 .addSuperinterface(t.asType())
                 .addSuperinterface(mut);
         type = isInheritedEntity ? type : type.addSuperinterface(useObjectStyle ? Meta.ObjectStyleEntity.class : Meta.Entity.class);
-        return type.addAnnotation(generated());
+        type = type.addAnnotation(generated());
+        var pkg = ClassName.get(t).packageName();
+        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
+        if (isGeneric) {
+            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
+                    .map(TypeVariableName::get)
+                    .toArray(TypeVariableName[]::new));
+        }
+        return new Pair<>(type, typeName);
     }
 
     protected static final String TARGET = "@Gene.Entity";
@@ -100,11 +122,16 @@ public class GeneEntity extends BaseFileProcessor {
             if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
             var isInheritedEntity = u.isAssignable(t.asType(), Meta.Entity.class);
             var isGeneric = !t.getTypeParameters().isEmpty();
+            var isMutate = isAnnotated(t, Gene.Mutate.class);
+            var pair = isMutate ?
+                    makeInheritMutateType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t)
+                    : makeType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t);
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            isAnnotated(t, Gene.Mutate.class) ?
-                                    makeInheritMutateType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t).build() :
-                                    t.accept(new SetterGeneVisitor(u, c.readBoolean(prefix + "chain").orElse(false)), makeType(isGeneric, isInheritedEntity, t)).build())
+                            t.accept(new SetterGeneVisitor(u,
+                                            c.readBoolean(prefix + "chain").orElse(false),
+                                            pair.v1()),
+                                    pair.v0()).build())
                     .build();
         }
         u.warn(this, "{} not a valid target of {}", ele, TARGET);

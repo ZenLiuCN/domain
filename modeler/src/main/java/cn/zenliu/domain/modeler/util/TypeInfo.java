@@ -97,13 +97,15 @@ public class TypeInfo {
     final String name;
 
     public Class<?> getTypeClass() {
-        return typeClass.cls();
+        return typeClass == null ? null : typeClass.cls();
     }
 
     final LazyClass typeClass;
+
     public LazyClass typeClass() {
         return typeClass;
     }
+
     @Getter
     final TypeInfo type;
 

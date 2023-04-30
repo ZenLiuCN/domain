@@ -17,9 +17,7 @@ package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Gene;
 import cn.zenliu.domain.modeler.prototype.Meta;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.TypeSpec;
-import com.squareup.javapoet.TypeVariableName;
+import com.squareup.javapoet.*;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -35,12 +33,13 @@ import javax.lang.model.element.TypeElement;
 @Desc("generator for Gene.Mutate")
 @ApiStatus.AvailableSince("0.1.2")
 public class GeneMutate extends BaseFileProcessor {
-    public static final String SUFFIX="Mutate";
+    public static final String SUFFIX = "Mutate";
+
     public GeneMutate() {
         super(Gene.Mutate.class);
     }
 
-    protected TypeSpec.Builder makeType(boolean isGeneric, boolean isTrait, TypeElement t) {
+    protected Pair<TypeSpec.Builder, TypeName> makeType(boolean isGeneric, boolean isTrait, TypeElement t) {
         var type = (
                 isGeneric
                         ? TypeSpec
@@ -54,7 +53,15 @@ public class GeneMutate extends BaseFileProcessor {
         )
                 .addModifiers(Modifier.PUBLIC);
         type = isTrait ? type.addSuperinterface(Meta.Trait.class) : type.addSuperinterface(t.asType());
-        return type.addAnnotation(generated());
+        type.addAnnotation(generated());
+        var pkg=ClassName.get(t).packageName();
+        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
+        if (isGeneric) {
+            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
+                    .map(TypeVariableName::get)
+                    .toArray(TypeVariableName[]::new));
+        }
+        return new Pair<>(type, typeName);
     }
 
     protected static final String TARGET = "@Gene.Mutate";
@@ -67,12 +74,14 @@ public class GeneMutate extends BaseFileProcessor {
             if (notInterface(u, TARGET, t)) return null;
             if (notDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
             if (!mustInheritOneOf(u, TARGET, t, Meta.Object.class, Meta.Trait.class)) return null;
+            var pair = makeType(!t.getTypeParameters().isEmpty(), u.isAssignable(t.asType(), Meta.Trait.class), t);
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
                             t.accept(new SetterGeneVisitor(
                                                     u,
-                                                    c.readBoolean(prefix + "chain").orElse(false)),
-                                            makeType(!t.getTypeParameters().isEmpty(), u.isAssignable(t.asType(), Meta.Trait.class), t))
+                                                    c.readBoolean(prefix + "chain").orElse(false),
+                                                    pair.v1()),
+                                            pair.v0())
                                     .build())
                     .build();
         }
