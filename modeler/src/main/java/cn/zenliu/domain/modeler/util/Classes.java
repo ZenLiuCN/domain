@@ -16,21 +16,76 @@
 package cn.zenliu.domain.modeler.util;
 
 import lombok.SneakyThrows;
+import org.jetbrains.annotations.ApiStatus;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Zen.Liu
  * @since 2023-04-30
  */
+@ApiStatus.AvailableSince("0.1.5")
 public interface Classes {
     @SuppressWarnings("unchecked")
     @SneakyThrows
+    @ApiStatus.AvailableSince("0.1.5")
     static <T> Class<T> forName(String name, ClassLoader cl) {
         return (Class<T>) (cl == null ? Thread.currentThread().getContextClassLoader() : cl).loadClass(name);
     }
 
     @SuppressWarnings("unchecked")
     @SneakyThrows
+    @ApiStatus.AvailableSince("0.1.5")
     static <T> T load(Class<T> type, String suffix, ClassLoader cl) {
         return (T) (cl == null ? type.getClassLoader() : cl).loadClass(type.getName() + suffix).getConstructor().newInstance();
+    }
+
+    /**
+     * this method just do an unchecked directly cast.
+     *
+     * @param src source list
+     * @param <T> parent type
+     * @param <R> current type
+     * @return unsafe casted list
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.AvailableSince("0.1.6")
+    static <T, R extends T> List<T> upcast(List<R> src) {
+        return ((List<T>) src);
+    }
+
+    /**
+     * @see #upcast(List)
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.AvailableSince("0.1.6")
+    static <T, R extends T> Set<T> upcast(Set<R> src) {
+        return ((Set<T>) src);
+    }
+
+    /**
+     * @see #upcast(List)
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.AvailableSince("0.1.6")
+    static <T, R extends T> Collection<T> upcast(Collection<R> src) {
+        return ((Collection<T>) src);
+    }
+
+    /**
+     * checked cast.
+     *
+     * @param type type to cast to
+     * @param i    instance
+     * @return empty if it can't cast to T
+     */
+    @SuppressWarnings("unchecked")
+    @ApiStatus.AvailableSince("0.1.6")
+    static <T> Optional<T> cast(Class<T> type, Object i) {
+        if (type.isInstance(i)) return Optional.of((T) i);
+        return Optional.empty();
     }
 }
