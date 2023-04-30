@@ -154,4 +154,34 @@ public interface Meta {
 
     }
 
+    /**
+     * Object Style Entity is an entity with save and delete method.<br/>
+     * This will only affect annotated with both of  {@link Gene.Mutate} and  {@link Gene.Entity}, And not already inherited from {@link Entity}.
+     */
+    @ApiStatus.AvailableSince("0.1.5")
+    interface ObjectStyleEntity extends Entity {
+        boolean delete();
+
+        void save();
+
+        /**
+         * transaction save
+         *
+         * @param transaction transaction object
+         */
+        default void save(java.lang.Object transaction) {
+
+        }
+
+        /**
+         * transaction delete
+         *
+         * @param transaction transaction object
+         * @return whether succeed
+         */
+        default boolean delete(java.lang.Object transaction) {
+            return false;
+        }
+    }
+
 }

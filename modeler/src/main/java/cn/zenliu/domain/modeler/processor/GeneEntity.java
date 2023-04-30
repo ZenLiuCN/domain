@@ -57,7 +57,7 @@ public class GeneEntity extends BaseFileProcessor {
         return type.addAnnotation(generated());
     }
 
-    protected TypeSpec.Builder makeInheritMutateType(boolean isGeneric, boolean isInheritedEntity, TypeElement t) {
+    protected TypeSpec.Builder makeInheritMutateType(boolean isGeneric, boolean isInheritedEntity, boolean useObjectStyle, TypeElement t) {
         final TypeName mut;
         if (isGeneric) {
             var cls = (ParameterizedTypeName) ParameterizedTypeName.get(t.asType());
@@ -84,7 +84,7 @@ public class GeneEntity extends BaseFileProcessor {
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(t.asType())
                 .addSuperinterface(mut);
-        type = isInheritedEntity ? type : type.addSuperinterface(Meta.Entity.class);
+        type = isInheritedEntity ? type : type.addSuperinterface(useObjectStyle ? Meta.ObjectStyleEntity.class : Meta.Entity.class);
         return type.addAnnotation(generated());
     }
 
@@ -103,7 +103,7 @@ public class GeneEntity extends BaseFileProcessor {
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
                             isAnnotated(t, Gene.Mutate.class) ?
-                                    makeInheritMutateType(isGeneric, isInheritedEntity, t).build() :
+                                    makeInheritMutateType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t).build() :
                                     t.accept(new SetterGeneVisitor(u, c.readBoolean(prefix + "chain").orElse(false)), makeType(isGeneric, isInheritedEntity, t)).build())
                     .build();
         }
