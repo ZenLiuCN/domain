@@ -46,21 +46,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * @since 2023-04-20
  */
 @ApiStatus.AvailableSince("0.1.2")
-public interface ProcUtil {
+public interface ProcUtil extends BaseProcUtil{
     /**
      * current enabled processors.
      */
-    Map<String, AbstractProcessor> processors();
 
-    ProcessingEnvironment env();
-
-    Elements elements();
-
-    Types types();
-
-    Filer filer();
-
-    boolean isDebug();
 
     //region Logger
     default void log(Diagnostic.Kind kind, String msg, Element element, AnnotationMirror a, AnnotationValue v) {

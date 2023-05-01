@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  */
 @com.google.auto.service.AutoService(Processor.class)
 @ApiStatus.AvailableSince("0.1.2")
-public class ModelerProcessor implements Processor, ProcUtil {
+public class ModelerProcessor implements Processor, BaseProcUtil {
     private final Map<Pattern, Set<AbstractProcessor>> processors;
     private final Set<String> supportedTypes;
 
@@ -241,13 +241,13 @@ public class ModelerProcessor implements Processor, ProcUtil {
             var p = entry.getKey();
             for (var proc : entry.getValue()) {
                 if (annotations.isEmpty() && Objects.equals(p.pattern(), "*")) {
-                    if (proc.process(null, annotations, roundEnv, this)) return true;
+                    if (proc.process(null, annotations, roundEnv, new ProcUtilPacker(this))) return true;
                 } else {
                     var pred = p.asPredicate();
                     for (var annotation : annotations) {
                         if (!pred.test(annotation.asType().toString())) continue;
                         for (var element : roundEnv.getElementsAnnotatedWith(annotation)) {
-                            if (proc.process(element, annotations, roundEnv, this)) return true;
+                            if (proc.process(element, annotations, roundEnv, new ProcUtilPacker(this))) return true;
                         }
                     }
                 }

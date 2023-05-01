@@ -146,7 +146,7 @@ public interface Configurer {
     /**
      * the root contains meta.properties
      */
-    Path root = outer(userDir, userDir.toAbsolutePath().toString().split(Pattern.quote(File.separator)).length - 1, false);
+    Path root = outer(userDir, userDir.toAbsolutePath().toString().split(Pattern.quote(File.separator)).length - 1, System.getProperty("modeler.config.debug") != null);
 
     @Data
     class Setting {
