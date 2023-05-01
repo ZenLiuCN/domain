@@ -80,6 +80,7 @@ public class GeneMutate extends BaseFileProcessor {
                             t.accept(new SetterGeneVisitor(
                                                     u,
                                                     c.readBoolean(prefix + "chain").orElse(false),
+                                                    c.readBoolean(prefix + "bean").orElse(true),
                                                     pair.v1()),
                                             pair.v0())
                                     .build())

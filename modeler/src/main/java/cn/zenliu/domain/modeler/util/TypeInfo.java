@@ -16,12 +16,14 @@
 package cn.zenliu.domain.modeler.util;
 
 import cn.zenliu.domain.modeler.annotation.Info;
+import cn.zenliu.domain.modeler.prototype.Meta;
 import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Element;
@@ -353,26 +355,7 @@ public class TypeInfo {
         }
         return b.build().flatten();
     }
-/*
-    *//**
-     * @param info the root type
-     * @return info with super class and interfaces
-     *//*
-    public static TypeInfo fromRoot(java.lang.reflect.Type info) {
-        var root = from(info);
-        if (info instanceof Class<?> c) {
-            for (var face : c.getGenericInterfaces()) {
-                if (face.getTypeName().contains("<")) {
-                    root.typeArguments.add(from(face));
-                }
-            }
-            var su = c.getGenericSuperclass();
-            if (su.getTypeName().contains("<")) {
-                root.typeArguments.add(from(su));
-            }
-        }
-        return root;
-    }*/
+
 
     /**
      * @param classTypeField the field may have a {@link Info.Type}
@@ -473,32 +456,7 @@ public class TypeInfo {
         return b.build().flatten();
     }
 
-    /**
-     * Create from an APT TypeMirror, with super class and interfaces.
-     *
-     * @param info TypeMirror
-     * @param env  processing environment.
-     */
-/*
-    public static TypeInfo fromRoot(TypeMirror info, ProcessingEnvironment env) {
-        var root = from(info, env);
-        if (info instanceof DeclaredType a) {
-            var raw = (TypeElement) a.asElement();
-            for (var face : raw.getInterfaces()) {
-                var tFace = (TypeElement) env.getTypeUtils().asElement(face);
-                if (!tFace.getTypeParameters().isEmpty()) {
-                    root.typeArguments.add(from(face, env));
-                }
-            }
-            var su = raw.getSuperclass();
-            var tsu = (TypeElement) env.getTypeUtils().asElement(su);
-            if (!tsu.getTypeParameters().isEmpty()) {
-                root.typeArguments.add(from(su, env));
-            }
-        }
-        return root;
-    }
-*/
+
 
     /**
      * @param e type element
@@ -516,5 +474,36 @@ public class TypeInfo {
         var b = new StringBuilder(last.getQualifiedName().toString());
         s.forEach(x -> b.append('$').append(x));
         return b.toString();
+    }
+
+
+
+    public  static Optional<TypeInfo> onType(Class<? extends Meta.Fields> fields) {
+        var an = fields.getAnnotation(Info.Type.class);
+        if (an == null) return Optional.empty();
+        return Optional.of(TypeInfo.deserialize(an.value()));
+    }
+
+    @SneakyThrows
+   public static Map<String, @Nullable TypeInfo> onFields(Class<? extends Meta.Fields> fields) {
+        var names = new HashMap<String, String>();
+        var infos = new HashMap<String, TypeInfo>();
+        for (var field : fields.getFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) continue;
+            if(field.getDeclaringClass()!=fields) continue;
+            var fn = field.getName();
+            if (!fn.endsWith(Meta.Fields.TYPE_SUFFIX)) {
+                var name = (String) field.get(null);
+                names.put(name, fn);
+            } else {
+                var an = field.getAnnotation(Info.Type.class);
+                if (an == null) continue;
+                var name = fn.replace(Meta.Fields.TYPE_SUFFIX, "");
+                infos.put(name.toUpperCase(), TypeInfo.deserialize(an.value()));
+            }
+        }
+        var m = new HashMap<String, TypeInfo>();
+        names.forEach((f, n) -> m.put(f, infos.get(n)));
+        return m;
     }
 }

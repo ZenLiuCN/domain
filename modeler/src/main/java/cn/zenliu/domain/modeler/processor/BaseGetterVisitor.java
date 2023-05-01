@@ -21,10 +21,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.TypeVariable;
 import javax.lang.model.util.ElementScanner14;
 import java.util.List;
 
@@ -35,10 +33,12 @@ import java.util.List;
 @ApiStatus.AvailableSince("0.1.2")
 public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builder, TypeSpec.Builder> {
     protected boolean haveTypeField = false;
+    protected final boolean beanStyle;
     protected TypeMirror root;
     protected final ProcUtil u;
 
-    protected BaseGetterVisitor(ProcUtil u) {
+    protected BaseGetterVisitor(boolean beanStyle, ProcUtil u) {
+        this.beanStyle = beanStyle;
         this.u = u;
     }
 
@@ -73,7 +73,9 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
     }
 
     protected boolean notGetterLikeMethod(ExecutableElement e) {
-        return (e.getParameters().size() != 0 || e.getReturnType().getKind() == TypeKind.VOID);
+
+        return (e.getParameters().size() != 0 || e.getReturnType().getKind() == TypeKind.VOID)
+                &&(!beanStyle||e.getSimpleName().toString().startsWith("get")||e.getSimpleName().toString().startsWith("is"));
     }
 
     protected boolean isObjectMethod(ExecutableElement e) {
@@ -96,7 +98,7 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
      */
     protected @Nullable String toSetterName(ExecutableElement e) {
         if (isFluentStyle(e)) {
-            var n = u.getterToSetter(e.getSimpleName(), false);
+            var n = u.getterToSetter(e.getSimpleName(), beanStyle);
             assert n != null : "not getter, should never happened " + e.getSimpleName();
             return n;
         }

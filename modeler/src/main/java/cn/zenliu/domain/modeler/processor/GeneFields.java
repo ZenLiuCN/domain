@@ -79,7 +79,7 @@ public class GeneFields extends BaseFileProcessor {
             }
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            t.accept(new Visitor(u, c.isDebug()), builder)
+                            t.accept(new Visitor(u, c.isDebug(), c.readBoolean(prefix+"bean").orElse(true)), builder)
                                     .build())
                     .build();
         }
@@ -95,8 +95,9 @@ public class GeneFields extends BaseFileProcessor {
     static class Visitor extends BaseGetterVisitor {
         private final boolean debug;
 
-        Visitor(ProcUtil u, boolean debug) {
-            super(u);
+
+        Visitor(ProcUtil u, boolean debug, boolean beanOnly) {
+            super(beanOnly, u);
             this.debug = debug;
         }
 
@@ -112,7 +113,7 @@ public class GeneFields extends BaseFileProcessor {
                 u.other("Ignore Object method: {}", e);
                 return builder;
             }
-            final String n = toSetterName(e);
+            final String n = u.getterToField(e.getSimpleName(),beanStyle);
             if (n == null) {
                 u.other("Ignore none bean style getter for Object method: {}", e);
                 return builder;

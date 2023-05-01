@@ -202,7 +202,10 @@ public abstract class AbstractProcessor {
         }
         return false;
     }
-
+    protected boolean inherit(ProcUtil u, TypeElement t, Class<?> type) {
+        //u.mandatoryWarn(self(), "type {} not a valid target of {}, not inherit {}", t, anno, type.getCanonicalName());
+        return u.isAssignable(t.asType(), type);
+    }
     protected boolean mustInheritOneOf(ProcUtil u, String anno, TypeElement t, Class<?>... types) {
         for (var c : types) {
             if (u.isAssignable(t.asType(), c)) return true;

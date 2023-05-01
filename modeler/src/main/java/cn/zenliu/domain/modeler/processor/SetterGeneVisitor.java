@@ -30,8 +30,8 @@ public class SetterGeneVisitor extends BaseGetterVisitor {
     private final boolean chain;
     private final TypeName self;
 
-    SetterGeneVisitor(ProcUtil u, boolean chain, TypeName self) {
-        super(u);
+    SetterGeneVisitor(ProcUtil u, boolean chain, boolean beanStyle,TypeName self) {
+        super(beanStyle, u);
         this.chain = chain;
         this.self = self;
     }

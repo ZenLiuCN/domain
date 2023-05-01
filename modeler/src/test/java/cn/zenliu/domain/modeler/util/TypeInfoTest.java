@@ -32,7 +32,7 @@ import java.util.function.BiConsumer;
 
 import static com.google.testing.compile.CompilationSubject.assertThat;
 import static com.google.testing.compile.Compiler.javac;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Zen.Liu
@@ -130,5 +130,16 @@ class TypeInfoTest {
                                               
                         """));
         assertThat(compilation).succeededWithoutWarnings();
+    }
+    @Test
+    void typeInfoOnClass(){
+        assertTrue(TypeInfo.onType(SampleFields.class).isPresent());
+    }
+    @Test
+    void typeInfoOnFields(){
+        var m=TypeInfo.onFields(SampleFields.class);
+        System.out.println(m);
+        assertNull(m.get("count"));
+        assertNotNull(m.get("payloads"));
     }
 }
