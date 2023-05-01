@@ -33,11 +33,15 @@ public @interface Mark {
      * Unique field marker
      */
 
-    @Target({ElementType.METHOD, ElementType.FIELD})
+    @Target({ElementType.METHOD, ElementType.FIELD,ElementType.TYPE})
     @Documented
     @Inherited
     @ApiStatus.AvailableSince("0.1.0")
     @interface Unique {
+        /**
+         * columns that combined ,use for annotated on type to mark a complex unique index.
+         */
+        @ApiStatus.AvailableSince("0.2.1") String[] value() default {};
     }
 
     /**
