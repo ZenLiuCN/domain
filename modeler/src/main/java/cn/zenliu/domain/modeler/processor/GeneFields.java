@@ -70,7 +70,7 @@ public class GeneFields extends BaseFileProcessor {
                     .addSuperinterface(Meta.Fields.class)
                     .addAnnotation(generated());
             if (typeInfo != null) {
-                if (c.isDebug()) u.printf(this, "{} type info: {}", t, typeInfo);
+                if (c.debug()) u.debug(this, "{} type info: {}", t, typeInfo);
                 var b = new StringJoiner(",", "{", "}");
                 for (var by : TypeInfo.serialize(typeInfo)) b.add("0x" + Integer.toHexString(by));
                 builder.addAnnotation(AnnotationSpec.builder(Info.Type.class)
@@ -79,7 +79,7 @@ public class GeneFields extends BaseFileProcessor {
             }
             return JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            t.accept(new Visitor(u, c.isDebug(), c.readBoolean(prefix+"bean").orElse(true)), builder)
+                            t.accept(new Visitor(u, c.debug(), c.readBoolean(prefix+"bean").orElse(true)), builder)
                                     .build())
                     .build();
         }
@@ -134,7 +134,7 @@ public class GeneFields extends BaseFileProcessor {
                 cn = typeName.toString();
             }
             if (info != null) {
-                if (debug) u.printf("GeneFields", "{} type info: {}", e, info);
+                if (debug) u.debug("GeneFields", "{} type info: {}", e, info);
                 var b = new StringJoiner(",", "{", "}");
                 for (var by : TypeInfo.serialize(info)) b.add("0x" + Integer.toHexString(by));
                 return builder

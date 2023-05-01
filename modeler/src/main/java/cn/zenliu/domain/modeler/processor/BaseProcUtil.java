@@ -26,6 +26,9 @@ import java.util.Map;
  * @since 2023-05-01
  */
 public interface BaseProcUtil {
+    /**
+     * current enabled processors.
+     */
     Map<String, AbstractProcessor> processors();
 
     ProcessingEnvironment env();

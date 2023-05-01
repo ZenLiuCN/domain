@@ -25,6 +25,8 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
+import static cn.zenliu.domain.modeler.processor.Configurer.debugf;
+
 /**
  * @author Zen.Liu
  * @since 2023-04-20
@@ -71,14 +73,17 @@ public interface Loader {
     static String loadPomVersion(Class<?> type) {
         try {
             var file = type.getProtectionDomain().getCodeSource().getLocation().getFile();
+            debugf("Locate Jar file {}", file);
             if (file.endsWith("jar")) {
                 try (var jar = new JarFile(file)) {
                     var it = jar.entries().asIterator();
                     while (it.hasNext()) {
                         var e = it.next();
-                        if (e.getName().equals("pom.properties")) {
+                        debugf("Lookup Jar entry {}", e);
+                        if (e.getName().endsWith("pom.properties")) {
                             var prop = new Properties();
                             prop.load(type.getClassLoader().getResourceAsStream(e.getRealName()));
+                            debugf("Load Jar pom.properties {}", prop);
                             return prop.getProperty("version");
                         }
                     }

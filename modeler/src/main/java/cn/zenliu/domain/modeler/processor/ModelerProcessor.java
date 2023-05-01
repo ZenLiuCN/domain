@@ -17,9 +17,9 @@ package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.util.Loader;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import lombok.experimental.Accessors;
 import org.jetbrains.annotations.ApiStatus;
-import org.slf4j.helpers.MessageFormatter;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -29,11 +29,16 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 import javax.lang.model.util.Types;
-import java.io.File;
+import javax.tools.Diagnostic;
+import javax.tools.StandardLocation;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static cn.zenliu.domain.modeler.processor.Configurer.*;
 
 /**
  * @author Zen.Liu
@@ -42,14 +47,14 @@ import java.util.stream.Collectors;
 @com.google.auto.service.AutoService(Processor.class)
 @ApiStatus.AvailableSince("0.1.2")
 public class ModelerProcessor implements Processor, BaseProcUtil {
-    private final Map<Pattern, Set<AbstractProcessor>> processors;
-    private final Set<String> supportedTypes;
+    private Map<Pattern, Set<AbstractProcessor>> processors;
+    private Set<String> supportedTypes;
 
     public Map<String, AbstractProcessor> processors() {
         return enabledProcessors;
     }
 
-    private final Map<String, AbstractProcessor> enabledProcessors;
+    private Map<String, AbstractProcessor> enabledProcessors;
     //region Pattern Compile
     public static final Pattern noMatches = Pattern.compile("(\\P{all})+");
     private static final String allMatchesString = ".*";
@@ -132,13 +137,6 @@ public class ModelerProcessor implements Processor, BaseProcUtil {
     }
 
     //endregion
-    static void printf(String pattern, Object... args) {
-        System.out.println("[ModelerProcessor] " + MessageFormatter.arrayFormat(pattern, args).getMessage());
-    }
-
-    static void errorf(String pattern, Object... args) {
-        System.err.println("[ModelerProcessor] " + MessageFormatter.arrayFormat(pattern, args).getMessage());
-    }
 
 
     public ModelerProcessor() {
@@ -147,48 +145,13 @@ public class ModelerProcessor implements Processor, BaseProcUtil {
             this.supportedTypes = Collections.emptySet();
             this.processors = Collections.emptyMap();
             this.enabledProcessors = Collections.emptyMap();
-        } else if (Configurer.root == null) {
-            printf("user.dir: {}", Configurer.userDir);
-            Configurer.outer(Configurer.userDir, Configurer.userDir.toAbsolutePath().toString().split(Pattern.quote(File.separator)).length - 1, true);
-            errorf("missing or invalid configure file '{}' , ModelerProcessor will disabled", Configurer.FILE_NAME);
+        } else if (Configurer.init()) {
+            debugf("user.dir: {}", Configurer.USER_DIR);
+            errorf("missing or invalid configure file '{}' , ModelerProcessor may disabled ,unless found a module config file", Configurer.FILE_NAME);
             this.supportedTypes = Collections.emptySet();
             this.processors = Collections.emptyMap();
             this.enabledProcessors = Collections.emptyMap();
-        } else {
-            var conf = Configurer.parse();
-            this.debug = conf.v0().debug;
-            var processors = conf.v1();
-            if (!conf.v0().isEnabled()) {
-                this.processors = Collections.emptyMap();
-                this.supportedTypes = Collections.emptySet();
-                this.enabledProcessors = Collections.emptyMap();
-                errorf("ModelerProcessor disabled");
-                return;
-            }
-            if (processors.isEmpty()) {
-                this.processors = Collections.emptyMap();
-                this.supportedTypes = Collections.emptySet();
-                this.enabledProcessors = Collections.emptyMap();
-                errorf("empty config found, ModelerProcessor will disabled");
-                return;
-            }
-            this.supportedTypes = processors.keySet();
-            if (debug)
-                printf("supported annotations: {}", this.supportedTypes);
-            this.processors = processors.entrySet().stream().map(x -> new Pair<>(importStringToPattern(x.getKey()), x.getValue())).collect(Collectors.toMap(Pair::v0, Pair::v1, (s0, s1) -> {
-                s0.addAll(s1);
-                return s0;
-            }));
-            if (debug)
-                printf("enabled patterns: {}", this.processors);
-            this.enabledProcessors = processors.values().stream()
-                    .flatMap(Collection::stream)
-                    .distinct()
-                    .collect(Collectors.toMap(AbstractProcessor::name, Function.identity()));
-            if (debug)
-                printf("enabled processors: {}", this.enabledProcessors);
         }
-
     }
 
     @Override
@@ -223,6 +186,24 @@ public class ModelerProcessor implements Processor, BaseProcUtil {
     @Getter
     private boolean debug = false;
 
+    protected Path fetchModuleRoot(ProcessingEnvironment env) {
+        try {
+            var resource = filer.createResource(StandardLocation.CLASS_OUTPUT, "", "tmp", (Element[]) null);
+            Path projectPath = null;//skip the name 'tmp'
+            try {
+                debugCfg("Found temp file URI: {} ", resource.toUri().toASCIIString());
+                projectPath = Paths.get(resource.toUri()).getParent();
+            } finally {
+                resource.delete();
+            }
+            return projectPath;
+        } catch (Exception e) {
+            env.getMessager().printMessage(Diagnostic.Kind.WARNING, "fail to fetch project module root:" + e.getMessage());
+            return null;
+        }
+    }
+
+    @SneakyThrows
     @Override
     public void init(ProcessingEnvironment processingEnv) {
         if (initialized) throw new IllegalStateException("Cannot call init more than once.");
@@ -232,6 +213,56 @@ public class ModelerProcessor implements Processor, BaseProcUtil {
         this.types = processingEnv.getTypeUtils();
         this.filer = processingEnv.getFiler();
         initialized = true;
+        var root = fetchModuleRoot(processingEnv);
+        if (root != null) {
+            if (!Configurer.calcRoot(root)) {
+                this.processors = Collections.emptyMap();
+                this.supportedTypes = Collections.emptySet();
+                this.enabledProcessors = Collections.emptyMap();
+                errorf("Processor disabled for not found {} at module root or project root", FILE_NAME);
+                return;
+            }
+        }
+        var conf = Configurer.parse();
+        if (conf == null) {
+            this.processors = Collections.emptyMap();
+            this.supportedTypes = Collections.emptySet();
+            this.enabledProcessors = Collections.emptyMap();
+            errorf("Processor disabled for not found {} at module root or project root", FILE_NAME);
+            return;
+        }
+        this.debug = conf.v0().debug;
+        var processors = conf.v1();
+        if (!conf.v0().isEnabled()) {
+            this.processors = Collections.emptyMap();
+            this.supportedTypes = Collections.emptySet();
+            this.enabledProcessors = Collections.emptyMap();
+            errorf("Processor disabled by {}", ROOT.get());
+            return;
+        }
+        if (processors.isEmpty()) {
+            this.processors = Collections.emptyMap();
+            this.supportedTypes = Collections.emptySet();
+            this.enabledProcessors = Collections.emptyMap();
+            errorf("Empty {} found, ModelerProcessor will disabled", ROOT.get());
+            return;
+        }
+        this.supportedTypes = processors.keySet();
+        if (debug)
+            debugf("Supported annotations: {}", this.supportedTypes);
+        this.processors = processors.entrySet().stream().map(x -> new Pair<>(importStringToPattern(x.getKey()), x.getValue())).collect(Collectors.toMap(Pair::v0, Pair::v1, (s0, s1) -> {
+            s0.addAll(s1);
+            return s0;
+        }));
+        if (debug)
+            debugf("Enabled patterns: {}", this.processors);
+        this.enabledProcessors = processors.values().stream()
+                .flatMap(Collection::stream)
+                .distinct()
+                .collect(Collectors.toMap(AbstractProcessor::name, Function.identity()));
+        if (debug)
+            debugf("Enabled processors: {}", this.enabledProcessors);
+
     }
 
     @Override

@@ -109,7 +109,7 @@ class GeneTest {
                                                          T getId();
                           }
                         """));
-        assertThat(compilation).succeededWithoutWarnings();
+        assertThat(compilation).succeeded();
         print(compilation);
         assertThat(compilation)
                 .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestFields.java")

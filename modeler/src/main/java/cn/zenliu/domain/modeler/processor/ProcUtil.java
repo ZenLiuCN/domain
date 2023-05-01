@@ -28,12 +28,8 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.helpers.MessageFormatter;
 
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.*;
-import javax.lang.model.util.Elements;
-import javax.lang.model.util.Types;
 import javax.tools.Diagnostic;
 import java.io.Writer;
 import java.net.URI;
@@ -47,10 +43,6 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @ApiStatus.AvailableSince("0.1.2")
 public interface ProcUtil extends BaseProcUtil{
-    /**
-     * current enabled processors.
-     */
-
 
     //region Logger
     default void log(Diagnostic.Kind kind, String msg, Element element, AnnotationMirror a, AnnotationValue v) {
@@ -90,7 +82,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default void other(AbstractProcessor proc, String pattern, Object... args) {
-        other(formatter("[" + proc.name() + "] " + pattern, args));
+        other(formatter("[" + proc.name() + "\t] [OTHER] " + pattern, args));
     }
 
     default void note(String msg) {
@@ -106,7 +98,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default void note(AbstractProcessor proc, String pattern, Object... args) {
-        note(formatter("[" + proc.name() + "] " + pattern, args));
+        note(formatter("[" + proc.name() + "\t] [NOTE] " + pattern, args));
     }
 
     default void warn(String msg) {
@@ -122,7 +114,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default void warn(AbstractProcessor proc, String pattern, Object... args) {
-        warn(formatter("[" + proc.name() + "] " + pattern, args));
+        warn(formatter("[" + proc.name() + "\t] [WARN] " + pattern, args));
     }
 
     default void mandatoryWarn(String msg) {
@@ -138,7 +130,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default void mandatoryWarn(AbstractProcessor proc, String pattern, Object... args) {
-        mandatoryWarn(formatter("[" + proc.name() + "] " + pattern, args));
+        mandatoryWarn(formatter("[" + proc.name() + "\t] [WARN] " + pattern, args));
     }
 
     default void error(String msg) {
@@ -154,7 +146,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default void error(AbstractProcessor proc, String pattern, Object... args) {
-        error(formatter("[" + proc.name() + "] " + pattern, args));
+        error(formatter("[" + proc.name() + "\t] [ERROR] " + pattern, args));
     }
 
     /**
@@ -179,7 +171,7 @@ public interface ProcUtil extends BaseProcUtil{
     }
 
     default String fatal(AbstractProcessor proc, String pattern, Object... args) {
-        return fatal(formatter("[" + proc.name() + "] " + pattern, args));
+        return fatal(formatter("[" + proc.name() + "\t] [FATAL] " + pattern, args));
 
     }
 
@@ -195,11 +187,11 @@ public interface ProcUtil extends BaseProcUtil{
      * @param pattern SLF4J pattern
      * @param args    values
      */
-    default void printf(AbstractProcessor processor, String pattern, Object... args) {
-        System.out.println(MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args).getMessage());
+    default void debug(AbstractProcessor processor, String pattern, Object... args) {
+        System.out.println(MessageFormatter.arrayFormat("[" + processor.name() + "\t] [DEBUG] " + pattern, args).getMessage());
     }
-    default void printf(String name, String pattern, Object... args) {
-        System.out.println(MessageFormatter.arrayFormat("[" + name + "] " + pattern, args).getMessage());
+    default void debug(String name, String pattern, Object... args) {
+        System.out.println(MessageFormatter.arrayFormat("[" + name + "\t] [DEBUG] " + pattern, args).getMessage());
     }
 
     /**
@@ -211,7 +203,7 @@ public interface ProcUtil extends BaseProcUtil{
      */
     @SneakyThrows
     default void errorf(AbstractProcessor processor, String pattern, Object... args) {
-        var m = MessageFormatter.arrayFormat("[" + processor.name() + "] " + pattern, args);
+        var m = MessageFormatter.arrayFormat("[" + processor.name() + "\t] [ERROR] " + pattern, args);
         System.err.println(m.getMessage());
         if (m.getThrowable() != null) {
             m.getThrowable().printStackTrace(System.err);
