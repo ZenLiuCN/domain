@@ -86,7 +86,7 @@ class GeneTest {
                           }
                         """));
         assertThat(compilation).succeededWithoutWarnings();
-        save(compilation,x->x.isNameCompatible("MetaTestFields", JavaFileObject.Kind.CLASS),Paths.get("MetaTestFields.class"));
+       // save(compilation,x->x.isNameCompatible("MetaTestFields", JavaFileObject.Kind.CLASS),Paths.get("MetaTestFields.class"));
         print(compilation);
         assertThat(compilation)
                 .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/MetaTestFields.java")
@@ -312,7 +312,7 @@ class GeneTest {
                          package some.pack;
                          import cn.zenliu.domain.modeler.annotation.Gene.Mutate;
                          import cn.zenliu.domain.modeler.annotation.Gene.Fields;
-                         import cn.zenliu.domain.modeler.annotation.Gene.Entity;
+                         import cn.zenliu.domain.modeler.annotation.Gene;
                          import cn.zenliu.domain.modeler.prototype.Meta;
                          import java.util.List;
                     
@@ -320,7 +320,7 @@ class GeneTest {
                              T getId();
                              X getParent();
                              List<X> getChildren();
-                             @Entity
+                             @Gene.Entity
                              interface Sub<T> extends MetaTest<T,Sub<T>>,Meta.Object{
                                 String getName();
                              }
