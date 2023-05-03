@@ -16,8 +16,12 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Gene;
+import cn.zenliu.domain.modeler.processor.safer.Pair;
 import cn.zenliu.domain.modeler.prototype.Meta;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.JavaFile;
+import com.squareup.javapoet.TypeName;
+import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.TypeVariableName;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus;
 
@@ -25,6 +29,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import java.util.List;
 
 /**
  * @author Zen.Liu
@@ -33,58 +38,59 @@ import javax.lang.model.element.TypeElement;
 @Desc("generator for Gene.Mutate")
 @ApiStatus.AvailableSince("0.1.2")
 public class GeneMutate extends BaseFileProcessor {
-    public static final String SUFFIX = "Mutate";
+
 
     public GeneMutate() {
         super(Gene.Mutate.class);
     }
 
     protected Pair<TypeSpec.Builder, TypeName> makeType(boolean isGeneric, boolean isTrait, TypeElement t) {
+        var name = t.getSimpleName().toString();
+        if (name.endsWith(Meta.Trait.SUFFIX)) {
+            name = name.replace(Meta.Trait.SUFFIX, "");
+        }
+        name = name + Meta.Trait.MUTABLE_SUFFIX;
         var type = (
                 isGeneric
                         ? TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + SUFFIX)
+                        .interfaceBuilder(name)
                         .addTypeVariables(t.getTypeParameters().stream()
                                 .map(TypeVariableName::get)
                                 .toList())
                         : TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + SUFFIX)
+                        .interfaceBuilder(name)
 
         )
+                .addAnnotation(generated())
                 .addModifiers(Modifier.PUBLIC);
-        type = isTrait ? type.addSuperinterface(Meta.Trait.class) : type.addSuperinterface(t.asType());
-        type.addAnnotation(generated());
-        var pkg=ClassName.get(t).packageName();
-        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
-        if (isGeneric) {
-            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
-                    .map(TypeVariableName::get)
-                    .toArray(TypeVariableName[]::new));
-        }
-        return new Pair<>(type, typeName);
+        type = isTrait ? type.addSuperinterface(t.asType()) : type.addSuperinterface(Meta.Trait.class);
+
+        return new Pair<>(type, lookupTypeName(t, name, isGeneric));
     }
 
     protected static final String TARGET = "@Gene.Mutate";
 
     @SneakyThrows
-    protected JavaFile processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
+    protected List<JavaFile> processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
         var c = this.preCheck(ele, u);
         if (c == null) return null;
         if (ele instanceof TypeElement t) {
             if (notInterface(u, TARGET, t)) return null;
             if (notDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
             if (!mustInheritOneOf(u, TARGET, t, Meta.Object.class, Meta.Trait.class)) return null;
-            var pair = makeType(!t.getTypeParameters().isEmpty(), u.isAssignable(t.asType(), Meta.Trait.class), t);
-            return JavaFile.builder(
-                            u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            t.accept(new SetterGeneVisitor(
-                                                    u,
-                                                    c.readBoolean(prefix + "chain").orElse(false),
-                                                    c.readBoolean(prefix + "bean").orElse(true),
-                                                    pair.v1()),
-                                            pair.v0())
-                                    .build())
-                    .build();
+            var pair = makeType(!t.getTypeParameters().isEmpty(), u.isAssignableTo(t.asType(), Meta.Trait.class), t);
+            return List.of(
+                    JavaFile.builder(
+                                    u.elements().getPackageOf(ele).getQualifiedName().toString(),
+                                    t.accept(new SetterGeneVisitor(
+                                                            u,
+                                                            c.readBoolean(prefix + "chain").orElse(false),
+                                                            c.readBoolean(prefix + "bean").orElse(true),
+                                                            pair.v1()),
+                                                    pair.v0())
+                                            .build())
+                            .build()
+            );
         }
         u.warn(this, "{} not a valid target of {}", ele, TARGET);
         return null;

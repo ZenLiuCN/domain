@@ -25,7 +25,7 @@ import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.jar.JarFile;
 
-import static cn.zenliu.domain.modeler.processor.Configurer.debugf;
+import static cn.zenliu.domain.modeler.processor.safer.Configurer.debugf;
 
 /**
  * @author Zen.Liu

@@ -15,6 +15,8 @@
 
 package cn.zenliu.domain.modeler.processor;
 
+import cn.zenliu.domain.modeler.processor.safer.Configurer;
+import cn.zenliu.domain.modeler.processor.safer.ModelerProcessor;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import lombok.SneakyThrows;
@@ -330,6 +332,63 @@ class GeneTest {
                 .generatedFile(StandardLocation.SOURCE_OUTPUT, "some/pack/SubEntity.java")
                 .contentsAsUtf8String()
                 .isNotEmpty();
+    }
+
+    @SneakyThrows
+    @Test
+    void geneAdaptor() {
+        config("""
+                proc.adaptor.instance=true
+                proc.adaptor.class=true
+                proc.adaptor.processor=cn.zenliu.domain.modeler.processor.GeneAdaptor
+                """);
+        var compilation = javac()
+                .withProcessors(new ModelerProcessor())
+                .compile(JavaFileObjects.forSourceString("MetaTest", """
+                        package some.pack;
+                                                
+                        import cn.zenliu.domain.modeler.annotation.Gene;
+                        import cn.zenliu.domain.modeler.annotation.Gene.Adapt;
+                        import cn.zenliu.domain.modeler.prototype.Meta;
+                                                
+                        import java.util.List;
+                                                
+                        public interface MetaTest<T,X extends MetaTest<T,X>> extends Meta.Object {
+                            T getId();
+                            X getParent();
+                            List<X> getChildren();
+                            
+                            interface Mixin{
+                                default int roo(){
+                                    return 2;
+                                }
+                            }
+                            
+                            @Adapt(
+                            value=MetaTest.class,
+                            types ={Gene.Self.class},
+                            names = {"X"},
+                            mixins = {Mixin.class}
+                             )
+                            class Da<T>{
+                                T id;
+                                Da<T> parent;
+                                List<Da<T>> children;
+                                public T getId(){
+                                    return id;
+                                }
+                                public Da<T> getParent(){
+                                    return parent;
+                                }
+                                public List<Da<T>> getChildren(){
+                                    return children;
+                                }
+                            }
+                        }
+                        """));
+        assertThat(compilation).succeededWithoutWarnings();
+        print(compilation);
+
     }
     @SneakyThrows
     static void print(Compilation compilation) {

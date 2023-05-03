@@ -17,8 +17,9 @@ package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Generated;
 import cn.zenliu.domain.modeler.annotation.Mode;
+import cn.zenliu.domain.modeler.processor.safer.Configurer;
 import cn.zenliu.domain.modeler.util.Loader;
-import com.squareup.javapoet.AnnotationSpec;
+import com.squareup.javapoet.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.SneakyThrows;
@@ -115,7 +116,7 @@ public abstract class AbstractProcessor {
      */
     public abstract boolean process(@Nullable Element element, Set<? extends TypeElement> annotations, RoundEnvironment roundEnv, ProcUtil util);
 
-    protected String name() {
+    public String name() {
         return this.getClass().getSimpleName();
     }
 
@@ -197,10 +198,16 @@ public abstract class AbstractProcessor {
         }
         return false;
     }
-
+    protected boolean isInterface(ProcUtil u, String anno, TypeElement t) {
+        if (t.getKind().isInterface()) {
+            u.mandatoryWarn(self(), "type {} not a valid target of {}, interface not supported", anno, t);
+            return true;
+        }
+        return false;
+    }
 
     protected boolean notInherit(ProcUtil u, String anno, TypeElement t, Class<?> type) {
-        if (!u.isAssignable(t.asType(), type)) {
+        if (!u.isAssignableTo(t.asType(), type)) {
             u.mandatoryWarn(self(), "type {} not a valid target of {}, not inherit {}", t, anno, type.getCanonicalName());
             return true;
         }
@@ -209,12 +216,12 @@ public abstract class AbstractProcessor {
 
     protected boolean inherit(ProcUtil u, TypeElement t, Class<?> type) {
         //u.mandatoryWarn(self(), "type {} not a valid target of {}, not inherit {}", t, anno, type.getCanonicalName());
-        return u.isAssignable(t.asType(), type);
+        return u.isAssignableTo(t.asType(), type);
     }
 
     protected boolean mustInheritOneOf(ProcUtil u, String anno, TypeElement t, Class<?>... types) {
         for (var c : types) {
-            if (u.isAssignable(t.asType(), c)) return true;
+            if (u.isAssignableTo(t.asType(), c)) return true;
         }
         u.mandatoryWarn(self(), "type {} not a valid target of {}, not inherit one of {}", t, anno, types);
         return false;
@@ -239,5 +246,16 @@ public abstract class AbstractProcessor {
     protected boolean isPrototype(Element t) {
         if (t == null) return false;
         return t.getAnnotationsByType(Mode.Prototype.class).length > 0;
+    }
+
+    public static TypeName lookupTypeName(TypeElement t, String name, boolean isGeneric) {
+        var pkg = ClassName.get(t).packageName();
+        TypeName typeName = ClassName.get(pkg, name);
+        if (isGeneric) {
+            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
+                    .map(TypeVariableName::get)
+                    .toArray(TypeVariableName[]::new));
+        }
+        return typeName;
     }
 }

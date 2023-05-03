@@ -29,6 +29,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.StringJoiner;
 
@@ -51,21 +52,21 @@ public class GeneFields extends BaseFileProcessor {
 
     @Nullable
     @Override
-    protected JavaFile processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
+    protected List<JavaFile> processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
         var c = this.preCheck(ele, u);
         if (c == null) return null;
 
         if (ele instanceof TypeElement t) {
             if (notInterface(u, TARGET, t)) return null;
             if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
-            var name = String.join(".", u.elements().getPackageOf(ele).getQualifiedName().toString(), t.getSimpleName() + "Fields");
+            var name = String.join(".", u.elements().getPackageOf(ele).getQualifiedName().toString(), t.getSimpleName() + Meta.Fields.SUFFIX);
             if (!processed.add(name)) return null;
             var typeInfo =
                     (!t.getTypeParameters().isEmpty() ||
-                            t.getInterfaces().stream().noneMatch(x -> u.typeElement(x).getTypeParameters().isEmpty()))
+                            t.getInterfaces().stream().noneMatch(x -> u.typeElementOf(x).getTypeParameters().isEmpty()))
                             ? TypeInfo.from(t.asType(), u.env()) : null;
             var builder = TypeSpec
-                    .interfaceBuilder(t.getSimpleName() + "Fields")
+                    .interfaceBuilder(t.getSimpleName() + Meta.Fields.SUFFIX)
                     .addModifiers(Modifier.PUBLIC)
                     .addSuperinterface(Meta.Fields.class)
                     .addAnnotation(generated());
@@ -77,11 +78,11 @@ public class GeneFields extends BaseFileProcessor {
                         .addMember("value", "$L", b)
                         .build());
             }
-            return JavaFile.builder(
+            return List.of(JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
-                            t.accept(new Visitor(u, c.debug(), c.readBoolean(prefix+"bean").orElse(true)), builder)
+                            t.accept(new Visitor(u, c.debug(), c.readBoolean(prefix + "bean").orElse(true)), builder)
                                     .build())
-                    .build();
+                    .build());
         }
         u.warn("{} not a valid target of {}", ele.toString(), TARGET);
         return null;
@@ -92,7 +93,7 @@ public class GeneFields extends BaseFileProcessor {
         return this;
     }
 
-    static class Visitor extends BaseGetterVisitor {
+    static class Visitor extends BaseMethodVisitor<TypeSpec.Builder> {
         private final boolean debug;
 
 
@@ -113,7 +114,7 @@ public class GeneFields extends BaseFileProcessor {
                 u.other("Ignore Object method: {}", e);
                 return builder;
             }
-            final String n = u.getterToField(e.getSimpleName(),beanStyle);
+            final String n = u.getterToField(e.getSimpleName(), beanStyle);
             if (n == null) {
                 u.other("Ignore none bean style getter for Object method: {}", e);
                 return builder;

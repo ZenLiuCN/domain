@@ -16,6 +16,7 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Gene;
+import cn.zenliu.domain.modeler.processor.safer.Pair;
 import cn.zenliu.domain.modeler.prototype.Meta;
 import com.squareup.javapoet.*;
 import lombok.SneakyThrows;
@@ -25,6 +26,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import java.util.List;
 
 /**
  * @author Zen.Liu
@@ -33,7 +35,6 @@ import javax.lang.model.element.TypeElement;
 @Desc("generator for Gene.Entity")
 @ApiStatus.AvailableSince("0.1.2")
 public class GeneEntity extends BaseFileProcessor {
-    public final String SUFFIX = "Entity";
 
     public GeneEntity() {
         super(Gene.Entity.class);
@@ -43,97 +44,92 @@ public class GeneEntity extends BaseFileProcessor {
                                                         boolean isInheritedEntity,
                                                         boolean useObjectStyle,
                                                         TypeElement t) {
+        var name = t.getSimpleName().toString();
+        if (name.endsWith(Meta.Trait.SUFFIX)) name = name.replace(Meta.Trait.SUFFIX, "");
+        if (name.endsWith(Meta.Trait.MUTABLE_SUFFIX)) name = name.replace(Meta.Trait.MUTABLE_SUFFIX, "");
+        name += Meta.Entity.SUFFIX;
         var type = (
                 isGeneric
                         ? TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + "Entity")
+                        .interfaceBuilder(name)
                         .addTypeVariables(t.getTypeParameters().stream()
                                 .map(TypeVariableName::get)
                                 .toList())
                         : TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + "Entity")
+                        .interfaceBuilder(name)
 
         )
+                .addAnnotation(generated())
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(t.asType());
         type = isInheritedEntity ? type : type.addSuperinterface(useObjectStyle ? Meta.ObjectStyleEntity.class : Meta.Entity.class);
-        type = type.addAnnotation(generated());
-        var pkg = ClassName.get(t).packageName();
-        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
-        if (isGeneric) {
-            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
-                    .map(TypeVariableName::get)
-                    .toArray(TypeVariableName[]::new));
-        }
-        return new Pair<>(type, typeName);
+
+        return new Pair<>(type, lookupTypeName(t, name, isGeneric));
     }
 
     protected Pair<TypeSpec.Builder, TypeName> makeInheritMutateType(boolean isGeneric,
                                                                      boolean isInheritedEntity,
                                                                      boolean useObjectStyle,
                                                                      TypeElement t) {
+        var name = t.getSimpleName().toString();
+        if (name.endsWith(Meta.Trait.SUFFIX)) name = name.replace(Meta.Trait.SUFFIX, "");
+        if (name.endsWith(Meta.Trait.MUTABLE_SUFFIX)) name = name.replace(Meta.Trait.MUTABLE_SUFFIX, "");
         final TypeName mut;
         if (isGeneric) {
             var cls = (ParameterizedTypeName) ParameterizedTypeName.get(t.asType());
             var pkg = cls.rawType.packageName();
-            mut = ParameterizedTypeName.get(ClassName.get(pkg, t.getSimpleName() + GeneMutate.SUFFIX)
+            mut = ParameterizedTypeName.get(ClassName.get(pkg, name + Meta.Trait.MUTABLE_SUFFIX)
                     , cls.typeArguments.toArray(TypeName[]::new));
 
         } else {
             var cls = ClassName.get(t);
             var pkg = cls.packageName();
-            mut = ClassName.get(pkg, t.getSimpleName() + GeneMutate.SUFFIX);
+            mut = ClassName.get(pkg, name + Meta.Trait.MUTABLE_SUFFIX);
         }
+        name += Meta.Entity.SUFFIX;
         var type = (
                 isGeneric
                         ? TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + SUFFIX)
+                        .interfaceBuilder(name)
                         .addTypeVariables(t.getTypeParameters().stream()
                                 .map(TypeVariableName::get)
                                 .toList())
                         : TypeSpec
-                        .interfaceBuilder(t.getSimpleName() + SUFFIX)
+                        .interfaceBuilder(name)
 
         )
+                .addAnnotation(generated())
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(t.asType())
                 .addSuperinterface(mut);
         type = isInheritedEntity ? type : type.addSuperinterface(useObjectStyle ? Meta.ObjectStyleEntity.class : Meta.Entity.class);
-        type = type.addAnnotation(generated());
-        var pkg = ClassName.get(t).packageName();
-        TypeName typeName = ClassName.get(pkg, t.getSimpleName() + SUFFIX);
-        if (isGeneric) {
-            typeName = ParameterizedTypeName.get((ClassName) typeName, t.getTypeParameters().stream()
-                    .map(TypeVariableName::get)
-                    .toArray(TypeVariableName[]::new));
-        }
-        return new Pair<>(type, typeName);
+        return new Pair<>(type, lookupTypeName(t, name, isGeneric));
     }
 
     protected static final String TARGET = "@Gene.Entity";
 
     @SneakyThrows
-    protected JavaFile processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
+    protected List<JavaFile> processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u) {
         var c = this.preCheck(ele, u);
         if (c == null) return null;
         if (ele instanceof TypeElement t) {
             if (notInterface(u, TARGET, t)) return null;
             if (notDirectInherit(u, TARGET, t, Meta.Entity.class)) return null;
             if (notInherit(u, TARGET, t, Meta.Object.class)) return null;
-            var isInheritedEntity = u.isAssignable(t.asType(), Meta.Entity.class);
+            var isInheritedEntity = u.isAssignableTo(t.asType(), Meta.Entity.class);
             var isGeneric = !t.getTypeParameters().isEmpty();
             var isMutate = isAnnotated(t, Gene.Mutate.class);
             var pair = isMutate ?
                     makeInheritMutateType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t)
                     : makeType(isGeneric, isInheritedEntity, c.readBoolean(prefix + "object").orElse(false), t);
-            return JavaFile.builder(
+            return List.of(JavaFile.builder(
                             u.elements().getPackageOf(ele).getQualifiedName().toString(),
                             t.accept(new SetterGeneVisitor(u,
                                             c.readBoolean(prefix + "chain").orElse(false),
                                             c.readBoolean(prefix + "bean").orElse(true),
                                             pair.v1()),
                                     pair.v0()).build())
-                    .build();
+                    .build());
         }
         u.warn(this, "{} not a valid target of {}", ele, TARGET);
         return null;

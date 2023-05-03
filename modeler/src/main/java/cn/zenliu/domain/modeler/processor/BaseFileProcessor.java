@@ -18,6 +18,7 @@ package cn.zenliu.domain.modeler.processor;
 import com.squareup.javapoet.JavaFile;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.ApiStatus;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.RoundEnvironment;
@@ -53,7 +54,10 @@ public abstract class BaseFileProcessor extends AbstractProcessor {
             if (u.isDebug()) u.note("{} will process {}", name(), element);
             var f = processElement(element, roundEnv, u);
             if (u.isDebug()) u.note("{} done process {}  {} file", name(), element, f == null ? "have" : "none");
-            if (f != null) f.writeTo(u.filer());
+            if (f != null)
+                for (JavaFile x : f) {
+                    x.writeTo(u.filer());
+                }
         } else {
             for (var ann : target) {
                 for (var ele : roundEnv.getElementsAnnotatedWith(ann)) {
@@ -61,7 +65,11 @@ public abstract class BaseFileProcessor extends AbstractProcessor {
                     if (u.isDebug()) u.note("{} will process {}", name(), ele);
                     var f = processElement(ele, roundEnv, u);
                     if (u.isDebug()) u.note("{} done process {}  {} file", name(), ele, f == null ? "have" : "none");
-                    if (f != null) f.writeTo(u.filer());
+                    if (f != null)
+                        for (JavaFile x : f) {
+                            x.writeTo(u.filer());
+                        }
+
                 }
             }
         }
@@ -69,7 +77,7 @@ public abstract class BaseFileProcessor extends AbstractProcessor {
     }
 
 
-    protected abstract @Nullable JavaFile processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u);
+    protected abstract @Nullable List<@NotNull JavaFile> processElement(Element ele, RoundEnvironment roundEnv, ProcUtil u);
 
     @Override
     public List<String> acceptTypes() {

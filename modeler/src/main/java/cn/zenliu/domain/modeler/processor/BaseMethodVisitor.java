@@ -16,34 +16,34 @@
 package cn.zenliu.domain.modeler.processor;
 
 import cn.zenliu.domain.modeler.annotation.Mode;
-import com.squareup.javapoet.*;
+import com.squareup.javapoet.FieldSpec;
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.ParameterSpec;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.ElementScanner14;
-import java.util.List;
 
 /**
  * @author Zen.Liu
  * @since 2023-04-22
  */
 @ApiStatus.AvailableSince("0.1.2")
-public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builder, TypeSpec.Builder> {
+public abstract class BaseMethodVisitor<P> extends ElementScanner14<P, P> {
     protected boolean haveTypeField = false;
     protected final boolean beanStyle;
     protected TypeMirror root;
     protected final ProcUtil u;
 
-    protected BaseGetterVisitor(boolean beanStyle, ProcUtil u) {
+    protected BaseMethodVisitor(boolean beanStyle, ProcUtil u) {
         this.beanStyle = beanStyle;
         this.u = u;
     }
 
     @Override
-    public TypeSpec.Builder visitType(TypeElement e, TypeSpec.Builder builder) {
+    public P visitType(TypeElement e, P builder) {
         if (root == null) {
             haveTypeField = e.getAnnotation(Mode.Field.class) != null;
             root = e.asType();
@@ -59,27 +59,25 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
     }
 
     @Override
-    public TypeSpec.Builder visitVariable(VariableElement e, TypeSpec.Builder builder) {
+    public P visitVariable(VariableElement e, P builder) {
         return builder;
     }
 
     @Override
-    public TypeSpec.Builder visitTypeParameter(TypeParameterElement e, TypeSpec.Builder builder) {
+    public P visitTypeParameter(TypeParameterElement e, P builder) {
         return builder;
     }
 
     protected boolean notInstanceMethod(ExecutableElement e) {
-        return (e.getModifiers().contains(Modifier.STATIC) || e.getModifiers().contains(Modifier.DEFAULT));
+        return u.isStatic(e) || u.isDefault(e);
     }
 
     protected boolean notGetterLikeMethod(ExecutableElement e) {
-
-        return (e.getParameters().size() != 0 || e.getReturnType().getKind() == TypeKind.VOID)
-                &&(!beanStyle||e.getSimpleName().toString().startsWith("get")||e.getSimpleName().toString().startsWith("is"));
+        return !u.isGetter(e, beanStyle);
     }
 
     protected boolean isObjectMethod(ExecutableElement e) {
-        return u.isSameType(e.getEnclosingElement().asType(), Object.class);
+        return u.isDeclaredBy(e, Object.class);
     }
 
     protected boolean isReadyOnly(ExecutableElement e) {
@@ -108,17 +106,14 @@ public abstract class BaseGetterVisitor extends ElementScanner14<TypeSpec.Builde
     }
 
     protected boolean hasDeclaredSetter(String methodName, ExecutableElement e) {
-        var s = u.declaredMethod(root, methodName, List.of(TypeName.get(e.getReturnType())));
+        var s = u.hasDeclared(methodName, e, root);
         if (s) u.other("Ignore already declared setter for method: {}", e);
         return s;
     }
 
 
-
-
-
     protected MethodSpec.Builder declareSetter(String methodName, ExecutableElement e) {
-        var re = u.typeElement(root);
+        var re = u.typeElementOf(root);
         var retType = u.resolveTypeName(e.getReturnType(), e, re);
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC, Modifier.ABSTRACT)

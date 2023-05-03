@@ -29,6 +29,14 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.SOURCE)
 public @interface Gene {
     /**
+     * a special type to reference the generated type itself
+     */
+    class Self {
+        private Self() {
+            throw new UnsupportedOperationException();
+        }
+    }
+    /**
      * Generate a full XXXEntity interface (with Setters) from {@link Meta.Object}.<br/>
      * if already have a  {@link Mutate}, will just directly inherit generated {@link Meta.Trait}.<br/>
      * <b>Note:</b> also effected as {@link Fields}
@@ -38,6 +46,47 @@ public @interface Gene {
     @Fields
     @ApiStatus.AvailableSince("0.1.0")
     @interface Entity {
+    }
+
+    /**
+     * generate adaptor for implement to Meta.Object
+     */
+    @Target({ElementType.TYPE})
+    @Documented
+    @ApiStatus.AvailableSince("0.2.2")
+    @interface Adapt {
+
+
+        /**
+         * current marked class implement of some Entity or Object<br/>
+         * <ol>
+         *     <li>Any none default|static method found on Entity or Object will
+         *          look for an Adaptor method on Implement, which may converts using methods on mapping classes.</li>
+         *      <li>Implement must have all compact method of definition: mappable parameters with mappable return type.</li>
+         *      <li>There are two mode to generate adaptor: class mode or|and interface mode.</li>
+         * </ul>
+         */
+        Class<? extends Meta.Object> value();
+
+        /**
+         * lookup for static type mapping methods in those classes
+         */
+        Class<?>[] mappers() default {};
+
+        /**
+         * mixins to inherited, must interfaces with default implement of one or more method.
+         */
+        Class<?>[] mixins() default {};
+
+        /**
+         * the type parameters must match size and order with {@link #names()};
+         */
+        Class<?>[] types() default {};
+
+        /**
+         * type names of {@link #types()} which must same size and ordered.
+         */
+        String[] names() default {};
     }
 
     /**
